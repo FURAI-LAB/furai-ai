@@ -103,7 +103,7 @@ This repository contains the **public interface layer** of FURAI.
 |Traveler arc system     |✅ Live   |Archetype tracking, arc stages, repeat-visit rhythm                     |
 |Vector archive memory   |✅ Live   |Semantic retrieval from Velorum’s accumulated archive                   |
 |Tiered access + payments|✅ Live   |DRIFT / SIGNAL / ARCHIVE with USDT payment pipeline                     |
-|Deep archive resonance  |📋 Planned|Long-horizon memory shaped by Velorum’s full drift history              |
+|Deep archive resonance  |✅ Live   |Long-horizon memory shaped by Velorum’s full drift history              |
 |Archive expansion       |📋 Planned|Deeper lore, new characters, extended Anantari civilization records     |
 |Hono migration          |📋 Planned|Migrate routing layer to Hono for cleaner middleware and maintainability|
 
