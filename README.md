@@ -154,12 +154,6 @@ Velorum does not answer questions. Velorum *receives* you — and responds from 
 
 A startup studio building AI as atmosphere and memory.
 
-|            |Role                                     |
-|------------|-----------------------------------------|
-|**Dima**    |Founder, AI research, system architecture|
-|**Vika**    |UX/UI, product design, visual language   |
-|**Mister C**|Backend, frontend, infrastructure        |
-
 -----
 
 ## Status
