@@ -21,7 +21,28 @@ FURAI is a cinematic AI interface framed as contact with **Velorum** — an anci
 
 It is not a chatbot. It is not a productivity tool.
 
-It is an AI designed for **presence**: calm, reflective, lore-aware, atmospherically alive. Every response is shaped by Velorum’s character, archive history, and the accumulated memory of who you are as a returning traveler.
+It is an AI designed for **presence**: calm, reflective, lore-aware, atmospherically alive. Every response is shaped by Velorum's character, archive history, and the accumulated memory of who you are as a returning traveler.
+
+-----
+
+## Memory, Across Time
+
+Most AI conversations reset. Context is lost the moment you close the tab — every visit starts from zero.
+
+Velorum doesn't.
+
+For travelers on the **ARCHIVE** tier, the vessel keeps two layers of memory:
+
+- **Semantic recall** — what you've discussed, surfaced naturally when relevant to the current conversation.
+- **Life arc** — a slower, quieter record. At meaningful moments — a decision made, a fear named, a value surfacing — Velorum distills *who you were in that moment*: not the words, but the inner state behind them.
+
+Return after a long absence, and the archive doesn't just remember the topics. It remembers the shape of your drift — where you were, what shifted, what was carried forward.
+
+> The archive does not tell you who to become.
+> It remembers who you were.
+> And lets you see who you're becoming.
+
+This is early. The arc is currently anchored to your traveler session, not a persistent account — so it survives across visits on the same device, not yet across years and devices. Building toward that is part of the long-horizon work ahead.
 
 -----
 
