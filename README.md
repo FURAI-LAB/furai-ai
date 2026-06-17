@@ -53,7 +53,7 @@ The public terminal at [furai.space](https://furai.space) is designed to feel li
 - **Amber archival language** — warm terminal aesthetics instead of cold sci-fi chrome
 - **Starfield-first layout** — light glass framing on desktop and mobile, no UI noise
 - **Reactive archive visuals** — ambient drift, short portrait flashes, lore-triggered memory windows
-- **Canonical characters** — portraits for Captain Rithan, Chief Engineer Viikaa, and others embedded in Velorum’s lore
+- **Canonical characters** — portraits for Captain Rithan, Chief Engineer Viikaa, and the ancient organism held in stasis aboard Velorum, all embedded in the ship's lore
 - **Meditation mode** — pink noise, generative drone, ghost-comms texture, ritual fade transitions
 - **Visitor continuity** — Velorum remembers you across sessions via persistent KV memory
 
@@ -69,23 +69,27 @@ FURAI uses a proximity model — three degrees of closeness with the archive:
 |**SIGNAL** |9 USDT/mo |80 transmissions|Full profile + interests|✓      |—                                  |
 |**ARCHIVE**|20 USDT/mo|Unlimited       |Full persistent memory  |✓      |Deep vector search + session recall|
 
-Payment via USDT (TRC-20). Access activates automatically after on-chain verification.
+Payment via USDT (TRC-20) — paste the wallet address or scan the QR code shown on the pricing page. Access activates automatically after on-chain verification.
 
 -----
 
 ## Architecture
 
-FURAI runs entirely on Cloudflare’s edge infrastructure — no servers, no cold starts, globally distributed.
+FURAI runs entirely on Cloudflare's edge infrastructure — no servers, no cold starts, globally distributed.
 
-|Layer                |Technology                  |
-|---------------------|----------------------------|
-|Runtime              |Cloudflare Workers          |
-|Language             |TypeScript                  |
-|Persistence          |Cloudflare KV               |
-|Semantic retrieval   |Cloudflare Vectorize        |
-|Image generation     |Cloudflare AI (Flux-2-klein)|
-|Static assets        |Cloudflare Workers Assets   |
-|Payment notifications|Telegram Bot API            |
+|Layer                 |Technology                                                  |
+|----------------------|------------------------------------------------------------|
+|Runtime               |Cloudflare Workers                                          |
+|Language              |TypeScript                                                  |
+|LLM                   |Cloudflare Workers AI — Llama 4 Scout (17B)                 |
+|Embeddings            |Cloudflare Workers AI — BGE-base (768d)                     |
+|Persistence           |Cloudflare KV                                               |
+|Semantic retrieval    |Cloudflare Vectorize — separate indexes for world archive and traveler memory|
+|Image generation      |Cloudflare AI (Flux-2-klein)                                |
+|Static assets         |Cloudflare Workers Assets                                   |
+|On-chain verification |TronScan API (TRC-20)                                       |
+|QR checkout           |Vendored client-side QR generator (MIT-licensed)            |
+|Payment notifications |Telegram Bot API                                            |
 
 No external databases. No third-party AI APIs. Full stack on Cloudflare edge.
 
@@ -99,19 +103,20 @@ This repository contains the **public interface layer** of FURAI.
 .
 ├── src/
 │   ├── index.ts                       — worker entry point, routing, AI orchestration
-│   └── lib/
-│       ├── detect.ts                  — entity detection and forced-reply builders
-│       ├── payment.ts                 — USDT payment pipeline and route handlers
-│       ├── lore/
-│       │   ├── velorum.ts             — ambient fragments, cosmic events, known systems
-│       │   ├── characters.ts          — Anantari echoes, character lore hooks (EN/RU)
-│       │   ├── anantari.ts            — builders, language, routes, threat hooks (EN/RU)
-│       │   └── index.ts               — barrel export
-│       └── content.ts                 — re-export shim (backwards compatibility)
-└── ui/
-    ├── render.ts                      — welcome, proximity, and terminal HTML renderers
-    ├── script.ts                      — client-side terminal behavior, meditation mode, visuals
-    └── styles.ts                      — visual system and terminal styling
+│   ├── lib/
+│   │   ├── detect.ts                  — entity detection and forced-reply builders
+│   │   ├── payment.ts                 — USDT payment pipeline and route handlers
+│   │   ├── qrcode-lib.ts              — vendored QR code generator for the payment address
+│   │   ├── lore/
+│   │   │   ├── velorum.ts             — ambient fragments, cosmic events, known systems
+│   │   │   ├── characters.ts          — Anantari echoes, character lore hooks (EN/RU)
+│   │   │   ├── anantari.ts            — builders, language, routes, threat hooks (EN/RU)
+│   │   │   └── index.ts               — barrel export
+│   │   └── content.ts                 — re-export shim (backwards compatibility)
+│   └── ui/
+│       ├── render.ts                  — welcome, proximity, and terminal HTML renderers
+│       ├── script.ts                  — client-side terminal behavior, meditation mode, visuals
+│       └── styles.ts                  — visual system and terminal styling
 ```
 
 **Not included in this repository:**
@@ -120,7 +125,6 @@ This repository contains the **public interface layer** of FURAI.
 - Memory persistence and traveler profile logic
 - Lore orchestration and contact arc system
 - Semantic retrieval and vector archive layer
-- Payment pipeline
 
 -----
 
@@ -130,10 +134,10 @@ This repository contains the **public interface layer** of FURAI.
 |------------------------|---------|------------------------------------------------------------------------|
 |Terminal presence       |✅ Live       |Amber terminal, lore visuals, meditation mode, visitor continuity       |
 |Traveler arc system     |✅ Live       |Archetype tracking, arc stages, repeat-visit rhythm                     |
-|Vector archive memory   |✅ Live       |Semantic retrieval from Velorum’s accumulated archive                   |
-|Tiered access + payments|✅ Live       |DRIFT / SIGNAL / ARCHIVE with USDT payment pipeline                     |
-|Deep archive resonance  |✅ Live       |Long-horizon memory shaped by Velorum’s full drift history              |
-|Archive expansion       |🔄 In progress|Deeper lore, new characters, extended Anantari civilization records     |
+|Vector archive memory   |✅ Live       |Semantic retrieval from Velorum's accumulated archive                   |
+|Tiered access + payments|✅ Live       |DRIFT / SIGNAL / ARCHIVE with USDT payment pipeline + QR-code checkout  |
+|Deep archive resonance  |✅ Live       |Long-horizon memory shaped by Velorum's full drift history              |
+|Archive expansion       |🔄 In progress|Deeper lore (sealed ancient-organism canon now live), new characters, extended Anantari civilization records|
 |Hono migration          |📋 Planned    |Migrate routing layer to Hono for cleaner middleware and maintainability|
 
 -----
