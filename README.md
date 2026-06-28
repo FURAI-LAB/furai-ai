@@ -101,11 +101,16 @@ No external databases. No third-party AI APIs. Full stack on Cloudflare edge.
 ## Why Cloudflare
 
 FURAI's architecture is built around four ideas:
-Global by default.
-State at the edge.
-Memory close to the traveler.
-Minimal operational complexity.
-Cloudflare's platform makes it possible to build persistent AI experiences without managing servers or regional infrastructure.
+
+- **Global by default**
+- **State at the edge**
+- **Memory close to the traveler**
+- **Minimal operational complexity**
+
+An archive should not care where a traveler comes from.
+It should simply be there — present, persistent, and close.
+
+Cloudflare's platform makes that possible without managing servers or regional infrastructure.
 
 ---
 
