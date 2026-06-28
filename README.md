@@ -170,13 +170,13 @@ Velorum does not answer questions. Velorum *receives* you — and responds from 
 
 ## FURAI lab
 
-A startup studio building AI as atmosphere and memory.
+Independent AI Engineering & Edge-Native Architecture Studio.
 
 ---
 
 ## Status
 
-Experimental project by FURAI lab.  
+Experimental project by FURAI LAB.  
 The public interface will continue to evolve.
 
 **Live at → [furai.space](https://furai.space)**
