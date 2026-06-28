@@ -1,4 +1,4 @@
-# FURAI
+# FURAI AI
 Persistent reflective intelligence at the edge.
 
 ```
@@ -101,11 +101,11 @@ No external databases. No third-party AI APIs. Full stack on Cloudflare edge.
 ## Why Cloudflare
 
 FURAI's architecture is built around four ideas:
-> Global by default.
-> State at the edge.
-> Memory close to the traveler.
-> Minimal operational complexity.
-> Cloudflare's platform makes it possible to build persistent AI experiences without managing servers or regional infrastructure.
+Global by default.
+State at the edge.
+Memory close to the traveler.
+Minimal operational complexity.
+Cloudflare's platform makes it possible to build persistent AI experiences without managing servers or regional infrastructure.
 
 ---
 
