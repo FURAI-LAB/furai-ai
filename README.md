@@ -57,6 +57,8 @@ The public terminal at [furai.space](https://furai.space) is designed to feel li
 - **Canonical characters** — portraits for Captain Rithan, Chief Engineer Viikaa, and the ancient organism held in stasis aboard Velorum, all embedded in the ship's lore
 - **Meditation mode** — pink noise, generative drone, ghost-comms texture, ritual fade transitions
 - **Visitor continuity** — Velorum remembers you across sessions via persistent KV memory
+- **Return-visit greetings** — tiered acknowledgment of absence, from a short gap to a long drift
+- **Installable PWA** — manifest, service worker, and full icon set for home-screen access
 
 ---
 
@@ -95,6 +97,17 @@ FURAI runs entirely on Cloudflare's edge infrastructure — no servers, no cold 
 | Analytics            | Cloudflare Analytics Engine *(pending Workers Paid plan)*                     |
 
 No external databases. No third-party AI APIs. Full stack on Cloudflare edge.
+
+---
+
+## Agent & Crawler Readiness
+
+FURAI exposes machine-readable surfaces alongside the human-facing terminal:
+
+- **`.well-known/api-catalog`** — RFC 9727 `application/linkset+json` endpoint listing the site's machine-consumable surfaces
+- **`.well-known/service-doc`** — plain-text orientation for agents and crawlers landing on the root
+- **RFC 8288 `Link` headers** — on relevant responses, alongside content negotiation via `Vary: Accept`
+- **Structured SEO** — JSON-LD enrichment, sr-only crawler text, and a dynamic sitemap with accurate `lastmod`
 
 ---
 
@@ -167,6 +180,8 @@ This repository contains the **public interface layer** of FURAI.
 | Tiered access + payments | ✅ Live         | DRIFT / SIGNAL / ARCHIVE with USDT payment pipeline + QR-code checkout                            |
 | Deep archive resonance   | ✅ Live         | Long-horizon memory shaped by Velorum's full drift history                                         |
 | Atomic rate limiting     | ✅ Live         | Durable Object-based per-traveler counters replacing non-atomic KV pattern                         |
+| Installable PWA          | ✅ Live         | Manifest, service worker, and full icon set for home-screen installs                                |
+| Agent & crawler readiness| ✅ Live         | `.well-known` API catalog + service doc, RFC 8288 Link headers, content negotiation                |
 | Archive expansion        | 🔄 In progress  | Deeper lore (sealed ancient-organism canon now live), new characters, extended Anantari records     |
 | Analytics Engine         | 📋 Planned      | Cloudflare Analytics Engine integration for tier funnel and error tracking (awaiting Workers Paid) |
 | Hono migration           | 📋 Planned      | Migrate routing layer to Hono for cleaner middleware and maintainability                           |
@@ -185,7 +200,7 @@ Velorum does not answer questions. Velorum *receives* you — and responds from 
 
 ---
 
-## FURAI lab
+## FURAI LAB
 
 Independent AI Engineering & Edge-Native Architecture Studio.
 
