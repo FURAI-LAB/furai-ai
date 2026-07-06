@@ -547,11 +547,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return window.crypto.randomUUID().replace(/-/g, '');
     }
 
-    return (
-      Date.now().toString(36) +
-      Math.random().toString(36).slice(2) +
-      Math.random().toString(36).slice(2)
-    ).slice(0, 32);
+    const t = Date.now().toString(36);
+    const r1 = Math.random().toString(36).replace('0.', '');
+    const r2 = Math.random().toString(36).replace('0.', '');
+    const r3 = Math.random().toString(36).replace('0.', '');
+    return (t + r1 + r2 + r3).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 32);
   }
 
   function getBootMode() {
@@ -593,6 +593,25 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       console.warn('[VisitorToken] storage error:', e);
       return buildVisitorToken();
+    }
+  }
+
+  function setCrewRecordButtonsHidden(hidden) {
+    if (dom.viikaaKeyButton) dom.viikaaKeyButton.hidden = hidden;
+    if (dom.rithanKeyButton) dom.rithanKeyButton.hidden = hidden;
+  }
+
+  async function applyProximityTier(token) {
+    try {
+      const res = await fetch('/api/pay/status?visitor_token=' + encodeURIComponent(token));
+      const data = await res.json();
+      const tier = data.tier || 'drift';
+
+      document.body.dataset.proximityTier = tier;
+      setCrewRecordButtonsHidden(tier === 'drift');
+    } catch (e) {
+      document.body.dataset.proximityTier = 'drift';
+      setCrewRecordButtonsHidden(true);
     }
   }
 
@@ -1098,19 +1117,63 @@ document.addEventListener('DOMContentLoaded', () => {
     let targetAtmosphere = 0;
     let stars    = [];
 
+    // Pre-rendered glow sprites replace per-star ctx.shadowBlur, which is
+    // extremely expensive on Blink (Chrome/Ecosia) when set/reset on every
+    // draw call in a loop of 1000+ stars. Safari's WebKit happens to
+    // optimize shadowBlur much better, which is why it looked fine there
+    // but tanked frame rate on Chromium-based browsers.
+    // Instead we bake a radial-gradient glow into a handful of offscreen
+    // canvases once (bucketed by alpha) and just drawImage() them, which is
+    // a cheap blit regardless of engine.
+    const GLOW_BUCKETS = 12;
+    const GLOW_SPRITE_SIZE = 48; // px, before scaling
+    const glowSprites = [];
+
+    function buildGlowSprites() {
+      glowSprites.length = 0;
+      for (let i = 0; i < GLOW_BUCKETS; i++) {
+        const alpha = (i + 1) / GLOW_BUCKETS;
+        const sprite = document.createElement('canvas');
+        sprite.width  = GLOW_SPRITE_SIZE;
+        sprite.height = GLOW_SPRITE_SIZE;
+        const sctx = sprite.getContext('2d');
+        const r = GLOW_SPRITE_SIZE / 2;
+        const grad = sctx.createRadialGradient(r, r, 0, r, r, r);
+        grad.addColorStop(0,    'rgba(255, 205, 132, ' + (0.9 * alpha) + ')');
+        grad.addColorStop(0.15, 'rgba(255, 197, 112, ' + (0.35 * alpha) + ')');
+        grad.addColorStop(0.5,  'rgba(255, 197, 112, ' + (0.08 * alpha) + ')');
+        grad.addColorStop(1,    'rgba(255, 197, 112, 0)');
+        sctx.fillStyle = grad;
+        sctx.fillRect(0, 0, GLOW_SPRITE_SIZE, GLOW_SPRITE_SIZE);
+        glowSprites.push(sprite);
+      }
+    }
+
     function resize() {
-      canvas.width  = window.innerWidth;
-      canvas.height = window.innerHeight;
+      // Full native devicePixelRatio — resolution/sharpness matches Safari
+      // exactly. Performance on Chromium comes from the glow-sprite and
+      // grid-animation fixes below, not from downscaling canvas resolution.
+      const dpr = window.devicePixelRatio || 1;
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width  = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      canvas.style.width  = w + 'px';
+      canvas.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     function buildStars() {
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width  / dpr;
+      const h = canvas.height / dpr;
       stars = [];
       for (const layer of CONFIG.starLayers) {
         for (let i = 0; i < layer.count; i++) {
           stars.push({
-            x:     Math.random() * canvas.width  - canvas.width  / 2,
-            y:     Math.random() * canvas.height - canvas.height / 2,
-            z:     Math.random() * canvas.width,
+            x:     Math.random() * w - w / 2,
+            y:     Math.random() * h - h / 2,
+            z:     Math.random() * w,
             speed: layer.speed,
             size:  layer.size,
           });
@@ -1128,40 +1191,76 @@ document.addEventListener('DOMContentLoaded', () => {
       speed += (targetSpeed - speed) * speedEase;
       atmosphere += (targetAtmosphere - atmosphere) * atmosphereEase;
 
-      ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.width  / dpr;
+      const h = canvas.height / dpr;
 
-      const cx = canvas.width  / 2;
-      const cy = canvas.height / 2;
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, w, h);
+
+      const cx = w / 2;
+      const cy = h / 2;
 
       for (const star of stars) {
+        const prevZ = star.z;
         star.z -= speed * star.speed;
-        if (star.z <= 0) star.z = canvas.width;
+        if (star.z <= 0) star.z = w;
 
         const k = 128 / star.z;
         const x = star.x * k + cx;
         const y = star.y * k + cy;
 
-        if (x < 0 || x > canvas.width || y < 0 || y > canvas.height) continue;
+        if (x < 0 || x > w || y < 0 || y > h) continue;
 
-        const depth = 1 - star.z / canvas.width;
+        const depth = 1 - star.z / w;
         const size = Math.max(0.3, depth * (2 + atmosphere * 0.28) * star.size);
         const alpha = Math.min(1, 0.28 + depth * (0.66 + atmosphere * 0.18));
         const glowAlpha = 0.34 + atmosphere * 0.16;
 
-        ctx.shadowColor = 'rgba(255, 205, 132, ' + glowAlpha + ')';
-        ctx.shadowBlur  = (5.5 * star.size + depth * 3.8) * (1 + atmosphere * 0.08);
-        ctx.fillStyle   = 'rgba(255, 197, 112, ' + alpha + ')';
+        // The old ctx.shadowBlur radius doesn't translate 1:1 to a radial
+        // gradient sprite: shadowBlur is a gaussian falloff around the
+        // shape's edge (visually tight), while a naive radial gradient of
+        // the same numeric radius reads much bigger and, at 1000+
+        // overlapping stars, washes into a solid haze. Scale it down and
+        // bias glow toward closer/brighter stars only.
+        const glowRadius = (1.6 * star.size + depth * depth * 2.4) * (1 + atmosphere * 0.1) + size * 0.4;
+        const bucket = Math.min(GLOW_BUCKETS - 1, Math.max(0, Math.round(glowAlpha * depth * (GLOW_BUCKETS - 1))));
+        const sprite = glowSprites[bucket];
+        const spriteSize = glowRadius * 2;
+
+        if (spriteSize > 1) {
+          ctx.drawImage(sprite, x - spriteSize / 2, y - spriteSize / 2, spriteSize, spriteSize);
+        }
+
+        // Motion streaks: close/fast stars read as a short trail instead of
+        // a static dot, which is the standard cinematic warp-speed cue.
+        // Reuses the same stroke pass (no extra draw calls) and only
+        // engages past a depth threshold so distant stars stay as points.
+        if (depth > 0.55 && prevZ > star.z) {
+          const prevK = 128 / prevZ;
+          const px = star.x * prevK + cx;
+          const py = star.y * prevK + cy;
+          const streakAlpha = alpha * Math.min(1, (depth - 0.55) * 2.2);
+          ctx.strokeStyle = 'rgba(255, 197, 112, ' + streakAlpha + ')';
+          ctx.lineWidth = size * 0.5;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(x, y);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = 'rgba(255, 197, 112, ' + alpha + ')';
         ctx.beginPath();
         ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur  = 0;
       }
 
       requestAnimationFrame(frame);
     }
 
     function init() {
+      buildGlowSprites();
       resize();
       buildStars();
       window.addEventListener('resize', () => {
@@ -1222,6 +1321,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (dom.rithanKeyButton) {
     dom.rithanKeyButton.addEventListener('click', () => {
+      if (document.body.dataset.proximityTier === 'drift') {
+        void typeBlock(
+          'CREW RECORD ACCESS DENIED\\n\\nVisual archive is locked on DRIFT.\\nActivate SIGNAL or ARCHIVE at /proximity to view crew records.',
+          'system'
+        );
+        return;
+      }
+
       markActivity();
       presentManualPortrait('rithan');
     });
@@ -1229,6 +1336,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (dom.viikaaKeyButton) {
     dom.viikaaKeyButton.addEventListener('click', () => {
+      if (document.body.dataset.proximityTier === 'drift') {
+        void typeBlock(
+          'CREW RECORD ACCESS DENIED\\n\\nVisual archive is locked on DRIFT.\\nActivate SIGNAL or ARCHIVE at /proximity to view crew records.',
+          'system'
+        );
+        return;
+      }
+
       markActivity();
       presentManualPortrait('viikaa');
     });
@@ -1246,7 +1361,10 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('orientationchange', setViewportHeight);
 
   starfield.init();
+  document.body.dataset.proximityTier = 'drift';
+  setCrewRecordButtonsHidden(true);
   state.visitorToken = getOrCreateVisitorToken();
+  void applyProximityTier(state.visitorToken);
   setMeditationToggleLabel(false);
   boot();
 });`
@@ -1288,3 +1406,60 @@ export const pinkNoiseWorkletScript = `class FuraiPinkNoiseProcessor extends Aud
 
 registerProcessor("furai-pink-noise", FuraiPinkNoiseProcessor);
 `
+
+export const serviceWorkerScript = `const CACHE_NAME = 'furai-shell-v1';
+const SHELL_ASSETS = [
+  '/ai/styles.css',
+  '/ai/script.js',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/apple-touch-icon.png',
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(SHELL_ASSETS)).catch(() => {})
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+    )
+  );
+  self.clients.claim();
+});
+
+// FURAI is a live conversation — /ai (POST), /api/pay/*, and any other
+// dynamic route always go straight to the network, never the cache. Only
+// the static shell (styles, script, icons) is cache-first, so the app
+// still opens instantly on a flaky connection while every reply and
+// payment status stays live.
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  const isShellAsset = SHELL_ASSETS.includes(url.pathname);
+
+  if (!isShellAsset) return;
+
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      const network = fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        })
+        .catch(() => cached);
+      return cached || network;
+    })
+  );
+});
+`
+
