@@ -1,4 +1,15 @@
-export const uiStyles = `    :root {
+export const uiStyles = `    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    :root {
       --app-height:        100vh;
       --color-bg:          #010208;
       --color-surface:     rgba(7, 5, 2, 0.82);
@@ -105,6 +116,28 @@ export const uiStyles = `    :root {
       transition: filter var(--meditation-transition-ms) var(--ease-soft);
     }
 
+    /* Static lens-vignette: darkens the corners so the starfield/streaks
+       read as if seen through a camera lens. Pure CSS radial-gradient,
+       no animation, no blur — costs nothing per frame regardless of
+       browser, unlike a canvas-drawn vignette would. */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(
+        ellipse 75% 75% at 50% 50%,
+        transparent 55%,
+        rgba(0, 0, 0, 0.32) 100%
+      );
+      transition: opacity var(--meditation-transition-ms) var(--ease-soft);
+      transition-delay: var(--meditation-overlay-delay);
+    }
+
+    .meditation .vignette {
+      opacity: 0.6;
+    }
+
     .nebula {
       position: fixed;
       inset: 0;
@@ -177,19 +210,38 @@ export const uiStyles = `    :root {
       transition-delay: var(--meditation-overlay-delay);
     }
 
+    /* .grid is a fixed viewport-sized clipping window; the actual patterned
+       background lives on ::before, sized one tile larger than the
+       viewport in every direction and driven by translate3d instead of an
+       animated background-position. background-position animations force a
+       full-viewport repaint every frame (paint-only, not composited), while
+       translate3d runs on the compositor thread — same visual drift, far
+       cheaper on Blink (Chrome/Ecosia), which repaints background-position
+       more eagerly than WebKit does. */
     .grid {
       position: fixed;
       inset: 0;
       z-index: 1;
       pointer-events: none;
+      overflow: hidden;
+      opacity: 1;
+      transition: opacity var(--meditation-transition-ms) var(--ease-soft);
+      transition-delay: var(--meditation-overlay-delay);
+    }
+
+    .grid::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      left: -80px;
+      right: -80px;
+      bottom: -80px;
       background-image:
         linear-gradient(rgba(255,179,71,0.006) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,179,71,0.006) 1px, transparent 1px);
       background-size: 80px 80px;
-      opacity: 1;
       animation: gridDrift 200s linear infinite;
-      transition: opacity var(--meditation-transition-ms) var(--ease-soft);
-      transition-delay: var(--meditation-overlay-delay);
+      will-change: transform;
     }
 
     .scanline {
@@ -318,8 +370,8 @@ export const uiStyles = `    :root {
     }
 
     @keyframes gridDrift {
-      from { background-position: 0 0; }
-      to   { background-position: 80px 80px; }
+      from { transform: translate3d(0, 0, 0); }
+      to   { transform: translate3d(80px, 80px, 0); }
     }
 
     @keyframes scanPulse {
@@ -731,24 +783,24 @@ export const uiStyles = `    :root {
     }
 
     .welcomePage,
-    .pricingPage {
+    .proximityPage {
       overflow: hidden;
     }
 
-    html:has(body.pricingPage) {
+    html:has(body.proximityPage) {
       height: auto;
       min-height: 100%;
       overflow-y: auto;
     }
 
-    body.pricingPage {
+    body.proximityPage {
       height: auto;
       min-height: 100%;
       overflow-y: auto;
     }
 
     .welcomeShell,
-    .pricingShell {
+    .proximityShell {
       position: relative;
       z-index: 5;
       width: min(100%, 980px);
@@ -807,7 +859,7 @@ export const uiStyles = `    :root {
     }
 
     .welcomeShell h1,
-    .pricingHeader h1 {
+    .proximityHeader h1 {
       margin: 0;
       font-size: clamp(52px, 13vw, 118px);
       line-height: 0.9;
@@ -819,7 +871,7 @@ export const uiStyles = `    :root {
     }
 
     .welcomeCopy,
-    .pricingHeader p:last-child {
+    .proximityHeader p:last-child {
       max-width: 620px;
       margin: 24px auto 0;
       font-family: var(--font-mono);
@@ -851,21 +903,45 @@ export const uiStyles = `    :root {
       animation: welcomeReveal 1.6s 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    .pricingShell {
+    .siteFooter {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 40px;
+      font-size: 9px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(232, 168, 76, 0.22);
+      animation: welcomeReveal 1.8s 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .siteFooter a {
+      color: rgba(232, 168, 76, 0.38);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .siteFooter a:hover {
+      color: rgba(232, 168, 76, 0.7);
+    }
+
+    .proximityShell {
       padding-top: calc(40px + env(safe-area-inset-top));
     }
 
-    .pricingBack {
+    .proximityBack {
       margin-bottom: 46px;
     }
 
-    .pricingNav {
+    .proximityNav {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
 
-    .pricingNav {
+    .proximityNav {
       margin-top: 0;
       margin-bottom: 46px;
     }
@@ -914,20 +990,20 @@ export const uiStyles = `    :root {
       background: rgba(255, 200, 110, 0.96);
     }
 
-    .pricingHeader {
+    .proximityHeader {
       max-width: 680px;
     }
 
-    .pricingHeader h1 {
+    .proximityHeader h1 {
       font-size: clamp(42px, 8vw, 86px);
     }
 
-    .pricingHeader p:last-child {
+    .proximityHeader p:last-child {
       margin-left: 0;
       margin-right: 0;
     }
 
-    .pricingTiers {
+    .proximityModes {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 1px;
@@ -937,7 +1013,7 @@ export const uiStyles = `    :root {
       animation: welcomeReveal 1.6s 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    .pricingTier {
+    .proximityMode {
       display: flex;
       min-height: 280px;
       flex-direction: column;
@@ -951,8 +1027,8 @@ export const uiStyles = `    :root {
       transition: color 0.35s ease, background 0.35s ease, transform 0.35s ease;
     }
 
-    .pricingTier:hover,
-    .pricingTier:focus-visible {
+    .proximityMode:hover,
+    .proximityMode:focus-visible {
       color: rgba(248, 234, 208, 0.92);
       background:
         linear-gradient(180deg, rgba(22, 13, 4, 0.88), rgba(9, 6, 2, 0.7)),
@@ -961,7 +1037,7 @@ export const uiStyles = `    :root {
       transform: translateY(-2px);
     }
 
-    .pricingTier-featured {
+    .proximityMode-featured {
       background:
         linear-gradient(180deg, rgba(38, 22, 7, 0.9), rgba(13, 8, 3, 0.76)),
         rgba(8, 5, 2, 0.86);
@@ -973,7 +1049,7 @@ export const uiStyles = `    :root {
       color: rgba(232, 168, 76, 0.38);
     }
 
-    .pricingTier strong {
+    .proximityMode strong {
       font-size: 18px;
       letter-spacing: 0.28em;
       font-weight: 400;
@@ -987,17 +1063,330 @@ export const uiStyles = `    :root {
     }
 
     .tierText {
-      flex: 1;
       font-family: var(--font-mono);
       font-size: 13px;
       line-height: 1.75;
     }
 
     .tierAction {
+      margin-top: auto;
       font-size: 10px;
       letter-spacing: 0.28em;
       text-transform: uppercase;
       color: rgba(255, 195, 106, 0.84);
+      text-decoration: none;
+    }
+
+    .tierAction:hover,
+    .tierAction:focus-visible {
+      color: rgba(255, 226, 176, 0.98);
+      outline: none;
+    }
+
+    .proximityPayment {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
+      gap: 32px;
+      margin-top: 54px;
+      padding-top: 42px;
+      border-top: 1px solid rgba(232, 168, 76, 0.16);
+      animation: welcomeReveal 1.6s 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .paymentHeader h2 {
+      margin: 10px 0 0;
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 0.98;
+      font-weight: 300;
+      color: rgba(255, 236, 203, 0.94);
+    }
+
+    .paymentAddressBlock,
+    .paymentNote,
+    .paymentBanner,
+    .restoreAccess,
+    .paymentForm,
+    .tokenSaveBox,
+    .paymentFootnote {
+      grid-column: 2;
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(248, 234, 208, 0.72);
+    }
+
+    .paymentAddressBlock p {
+      margin: 0 0 10px;
+    }
+
+    .usdtAddress {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .usdtAddress code,
+    .tokenSaveBox code {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      padding: 13px 14px;
+      border: 1px solid rgba(232, 168, 76, 0.18);
+      background: rgba(5, 3, 2, 0.6);
+      color: rgba(255, 226, 176, 0.92);
+    }
+
+    .usdtAddress button,
+    .restoreRow button,
+    .restoreRow input,
+    .tokenSaveBox button,
+    .paymentForm button,
+    .paymentForm select,
+    .paymentForm input {
+      min-height: 44px;
+      border: 1px solid rgba(232, 168, 76, 0.22);
+      border-radius: 0;
+      font: inherit;
+      color: rgba(255, 236, 203, 0.9);
+      background: rgba(7, 5, 3, 0.78);
+    }
+
+    .usdtAddress button,
+    .restoreRow button,
+    .tokenSaveBox button,
+    .paymentForm button {
+      padding: 0 18px;
+      cursor: pointer;
+      color: #010208;
+      background: rgba(255, 179, 71, 0.88);
+      transition: background 0.24s ease, border-color 0.24s ease, opacity 0.24s ease;
+    }
+
+    .usdtAddress button:hover,
+    .usdtAddress button:focus-visible,
+    .restoreRow button:hover,
+    .restoreRow button:focus-visible,
+    .tokenSaveBox button:hover,
+    .tokenSaveBox button:focus-visible,
+    .paymentForm button:hover,
+    .paymentForm button:focus-visible {
+      border-color: rgba(255, 214, 145, 0.8);
+      background: rgba(255, 200, 110, 0.96);
+      outline: none;
+    }
+
+    .restoreRow button:disabled,
+    .paymentForm button:disabled {
+      cursor: default;
+      opacity: 0.58;
+    }
+
+    .paymentNote,
+    .paymentFootnote {
+      color: rgba(248, 234, 208, 0.58);
+    }
+
+    .paymentBanner {
+      padding: 12px 14px;
+      border: 1px solid rgba(232, 168, 76, 0.18);
+      background: rgba(5, 3, 2, 0.58);
+    }
+
+    .paymentBanner[data-state="success"] {
+      color: rgba(161, 226, 178, 0.96);
+      border-color: rgba(116, 204, 139, 0.34);
+    }
+
+    .paymentBanner[data-state="error"] {
+      color: rgba(255, 166, 148, 0.96);
+      border-color: rgba(255, 127, 102, 0.34);
+    }
+
+    .restoreAccess,
+    .tokenSaveBox {
+      display: grid;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid rgba(232, 168, 76, 0.18);
+      background: rgba(5, 3, 2, 0.58);
+    }
+
+    .restoreLabel,
+    .tokenSaveLabel {
+      margin: 0;
+      color: rgba(248, 234, 208, 0.72);
+    }
+
+    .restoreRow {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .restoreRow input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 14px;
+    }
+
+    .restoreRow input::placeholder {
+      color: rgba(248, 234, 208, 0.38);
+    }
+
+    .restoreStatus {
+      color: rgba(255, 226, 176, 0.92);
+    }
+
+    .tokenSaveBox {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: stretch;
+    }
+
+    .tokenSaveLabel {
+      grid-column: 1 / -1;
+      color: rgba(255, 226, 176, 0.92);
+    }
+
+    .paymentForm {
+      display: grid;
+      gap: 12px;
+    }
+
+    .paymentForm select,
+    .paymentForm input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 14px;
+    }
+
+    .paymentForm input::placeholder {
+      color: rgba(248, 234, 208, 0.38);
+    }
+
+    .paymentTierPicker {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .tierPickBtn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 14px 10px;
+      background: rgba(5, 3, 2, 0.58);
+      border: 1px solid rgba(232, 168, 76, 0.18);
+      color: rgba(248, 234, 208, 0.86);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .tierPickBtn:hover,
+    .tierPickBtn:focus-visible {
+      background: rgba(5, 3, 2, 0.78);
+      border-color: rgba(232, 168, 76, 0.4);
+      outline: none;
+    }
+
+    .tierPickBtn.active {
+      background: rgba(232, 168, 76, 0.1);
+      border-color: rgba(232, 168, 76, 0.62);
+    }
+
+    .tierPickName {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(248, 234, 208, 0.6);
+    }
+
+    .tierPickPrice {
+      font-size: 1rem;
+      font-weight: 500;
+      color: rgba(255, 226, 176, 0.92);
+    }
+
+    .paymentQrBlock {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    #qr-canvas {
+      border-radius: 2px;
+      image-rendering: pixelated;
+      box-shadow: 0 0 0 6px #fdf6ec, 0 0 0 8px rgba(232, 168, 76, 0.3);
+    }
+
+    .paymentSentBtn {
+      margin-top: 4px;
+      padding: 10px 22px;
+      background: rgba(232, 168, 76, 0.1);
+      border: 1px solid rgba(232, 168, 76, 0.4);
+      color: rgba(255, 226, 176, 0.92);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .paymentSentBtn:hover:not(:disabled),
+    .paymentSentBtn:focus-visible:not(:disabled) {
+      background: rgba(232, 168, 76, 0.2);
+      border-color: rgba(232, 168, 76, 0.65);
+      outline: none;
+    }
+
+    .paymentSentBtn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .paymentAutoConfirm {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      background: rgba(5, 3, 2, 0.58);
+      border: 1px solid rgba(232, 168, 76, 0.18);
+      margin-bottom: 16px;
+    }
+
+    .paymentAutoConfirm code {
+      font-size: 0.68rem;
+      word-break: break-all;
+      color: rgba(248, 234, 208, 0.65);
+    }
+
+    .paymentManual {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 14px 16px;
+      background: rgba(5, 3, 2, 0.45);
+      border: 1px solid rgba(232, 168, 76, 0.12);
+      margin-bottom: 16px;
+    }
+
+    .paymentManual input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 14px;
+    }
+
+    .paymentBanner[data-state="info"] {
+      color: rgba(255, 226, 176, 0.7);
+      border-color: rgba(232, 168, 76, 0.3);
     }
 
     @keyframes welcomeReveal {
@@ -1255,7 +1644,6 @@ export const uiStyles = `    :root {
       box-shadow:
         inset 0 1px 0 rgba(255, 227, 183, 0.012),
         inset 0 0 6px rgba(0, 0, 0, 0.01);
-      backdrop-filter: blur(0.35px);
       filter: brightness(1) contrast(1);
       transition:
         opacity var(--meditation-transition-ms) var(--ease-soft),
@@ -1595,12 +1983,26 @@ export const uiStyles = `    :root {
         gap: 8px;
       }
 
-      .pricingTiers {
+      .proximityModes {
         grid-template-columns: 1fr;
       }
 
-      .pricingTier {
+      .proximityMode {
         min-height: 0;
+      }
+
+      .proximityPayment {
+        grid-template-columns: 1fr;
+      }
+
+      .paymentAddressBlock,
+      .paymentNote,
+      .paymentBanner,
+      .restoreAccess,
+      .paymentForm,
+      .tokenSaveBox,
+      .paymentFootnote {
+        grid-column: 1;
       }
 
       #terminalWrap {
@@ -1645,7 +2047,7 @@ export const uiStyles = `    :root {
       }
 
       .welcomeShell,
-      .pricingShell {
+      .proximityShell {
         padding-left: calc(18px + env(safe-area-inset-left));
         padding-right: calc(18px + env(safe-area-inset-right));
       }
@@ -1663,12 +2065,16 @@ export const uiStyles = `    :root {
         width: 100%;
       }
 
-      .pricingNav {
+      .proximityNav {
         width: 100%;
       }
 
       .terminalNavLink {
         width: 100%;
+      }
+
+      .usdtAddress {
+        grid-template-columns: 1fr;
       }
 
       .welcomeMeta {
