@@ -782,21 +782,45 @@ export const uiStyles = `    .sr-only {
         0 0 40px rgba(255, 214, 149, 0.08);
     }
 
-    .welcomePage,
-    .proximityPage {
+    .welcomePage {
       overflow: hidden;
     }
 
-    html:has(body.proximityPage) {
+    /* /proximity has more content than fits in one viewport (pricing tiers
+       stack vertically), so it needs real page scroll, unlike /ai which
+       manages its own internal scroll region and stays overflow:hidden at
+       the page level.
+
+       Confirmed root cause (verified live via DevTools, not guessed):
+       document.documentElement.scrollHeight (1713) > clientHeight (690),
+       overflowY computed as "auto", scrollingElement is html, and
+       html.scrollTop = 500 moved the page instantly -- so the scroll
+       container itself was always healthy. The wheel/trackpad still did
+       nothing. elementFromPoint at the cursor correctly returned
+       main.proximityShell, so no invisible overlay was stealing the hit
+       test either. What was missing: body.proximityPage never set its
+       own overflow, so body silently kept overflow:hidden from the
+       base html/body rule above, and also kept touch-action:
+       manipulation from the base body rule. A hidden-overflow
+       ancestor sitting directly between the cursor and the real
+       document scroller is enough for Blink to swallow wheel/trackpad
+       scroll intent before it reaches html, even though scrollTop still
+       works programmatically and hit-testing looks unaffected. WebKit
+       routes this through regardless; Blink does not. Fix: body must
+       explicitly opt back into normal overflow and allow vertical pan,
+       not just rely on html owning the scroll. */
+    html.proximityDoc {
       height: auto;
       min-height: 100%;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     body.proximityPage {
       height: auto;
       min-height: 100%;
-      overflow-y: auto;
+      overflow: visible;
+      touch-action: pan-y;
     }
 
     .welcomeShell,
