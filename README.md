@@ -57,6 +57,7 @@ The public terminal at [furai.space](https://furai.space) is designed to feel li
 - **Canonical characters** — portraits for Captain Rithan, Chief Engineer Viikaa, and the ancient organism held in stasis aboard Velorum, all embedded in the ship's lore
 - **Meditation mode** — pink noise, generative drone, ghost-comms texture, ritual fade transitions
 - **Visitor continuity** — Velorum remembers you across sessions via persistent KV memory
+- **Traveler File** — an encrypted archive record of who you are to the ship: contact stage, archetype, and an AI-rendered portrait that resolves as the archive learns more about you. Not readable in raw form, even by FURAI LAB — it surfaces only when Velorum generates a reply to you.
 - **Return-visit greetings** — tiered acknowledgment of absence, from a short gap to a long drift
 - **Installable PWA** — manifest, service worker, and full icon set for home-screen access
 
@@ -67,10 +68,10 @@ The public terminal at [furai.space](https://furai.space) is designed to feel li
 FURAI uses a proximity model — three degrees of closeness with the archive:
 
 | Tier        | Price      | Daily limit      | Memory                   | Visuals | Archive                             |
-|-------------|------------|------------------|--------------------------|---------|-------------------------------------|
-| **DRIFT**   | Free       | 12 transmissions | Name only                | —       | —                                   |
-| **SIGNAL**  | 9 USDT/mo  | 80 transmissions | Full profile + interests | ✓       | —                                   |
-| **ARCHIVE** | 20 USDT/mo | Unlimited        | Full persistent memory   | ✓       | Deep vector search + session recall |
+|-------------|------------|------------------|---------------------------|---------|--------------------------------------|
+| **DRIFT**   | Free       | 12 transmissions | Name only                | —       | —                                    |
+| **SIGNAL**  | 9 USDT/mo  | 80 transmissions | Full profile + interests | ✓       | —                                    |
+| **ARCHIVE** | 20 USDT/mo | Unlimited        | Full persistent memory   | ✓       | Deep vector search + session recall  |
 
 Payment via USDT (TRC-20) — paste the wallet address or scan the QR code shown on the pricing page. Access activates automatically after on-chain verification.
 
@@ -81,7 +82,7 @@ Payment via USDT (TRC-20) — paste the wallet address or scan the QR code shown
 FURAI runs entirely on Cloudflare's edge infrastructure — no servers, no cold starts, globally distributed.
 
 | Layer                | Technology                                                                    |
-|----------------------|-------------------------------------------------------------------------------|
+|-----------------------|--------------------------------------------------------------------------------|
 | Runtime              | Cloudflare Workers                                                            |
 | Language             | TypeScript                                                                    |
 | LLM                  | Cloudflare Workers AI — Llama 4 Scout (17B)                                  |
@@ -138,9 +139,11 @@ This repository contains the **public interface layer** of FURAI.
 │   ├── lib/
 │   │   ├── ai.ts                       — Workers AI pipeline runner
 │   │   ├── analytics.ts                — Analytics Engine event tracking (pending AE binding)
+│   │   ├── crypto.ts                   — AES-GCM encryption for traveler file storage
 │   │   ├── detect.ts                   — entity detection and forced-reply builders
 │   │   ├── http.ts                     — response helpers, CORS, CSP
 │   │   ├── payment.ts                  — USDT payment pipeline and route handlers
+│   │   ├── portrait.ts                 — traveler portrait prompt building and regeneration
 │   │   ├── prompt.ts                   — system prompt builder
 │   │   ├── qrcode-lib.ts               — vendored QR code generator for the payment address
 │   │   ├── rateLimiter.ts              — Durable Object for atomic rate limiting
@@ -148,6 +151,7 @@ This repository contains the **public interface layer** of FURAI.
 │   │   ├── state.ts                    — traveler identity, KV state, rate limit enforcement
 │   │   ├── text.ts                     — shared text utilities and token validation
 │   │   ├── tiers.ts                    — proximity tier config
+│   │   ├── traveler-file.ts            — traveler file route handlers (get / portrait / forget)
 │   │   ├── types.ts                    — shared TypeScript interfaces
 │   │   ├── visuals.ts                  — Flux image generation pipeline
 │   │   └── lore/
@@ -173,9 +177,10 @@ This repository contains the **public interface layer** of FURAI.
 ## Roadmap
 
 | Phase                    | Status          | Description                                                                                        |
-|--------------------------|-----------------|----------------------------------------------------------------------------------------------------|
+|---------------------------|------------------|------------------------------------------------------------------------------------------------------|
 | Terminal presence        | ✅ Live         | Amber terminal, lore visuals, meditation mode, visitor continuity                                  |
 | Traveler arc system      | ✅ Live         | Archetype tracking, arc stages, repeat-visit rhythm                                                |
+| Traveler File            | ✅ Live         | Encrypted archive record with AI-rendered portrait, visible across all tiers                       |
 | Vector archive memory    | ✅ Live         | Semantic retrieval from Velorum's accumulated archive                                              |
 | Tiered access + payments | ✅ Live         | DRIFT / SIGNAL / ARCHIVE with USDT payment pipeline + QR-code checkout                            |
 | Deep archive resonance   | ✅ Live         | Long-horizon memory shaped by Velorum's full drift history                                         |
