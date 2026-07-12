@@ -160,6 +160,19 @@ document.addEventListener('DOMContentLoaded', () => {
     rithanKeyButton: document.getElementById('rithanKeyButton'),
     viikaaKeyButton: document.getElementById('viikaaKeyButton'),
     encryptedKeyButton: document.getElementById('encryptedKeyButton'),
+    travelerFileButton: document.getElementById('travelerFileButton'),
+    travelerFileOverlay: document.getElementById('travelerFileOverlay'),
+    travelerFileModal: document.getElementById('travelerFileModal'),
+    travelerFileClose: document.getElementById('travelerFileClose'),
+    travelerFileId: document.getElementById('travelerFileId'),
+    travelerFileFields: document.getElementById('travelerFileFields'),
+    travelerFileFootnote: document.getElementById('travelerFileFootnote'),
+    travelerFileStatus: document.getElementById('travelerFileStatus'),
+    travelerFileForget: document.getElementById('travelerFileForget'),
+    travelerPortraitFrame: document.getElementById('travelerPortraitFrame'),
+    travelerPortraitImage: document.getElementById('travelerPortraitImage'),
+    travelerPortraitLocked: document.getElementById('travelerPortraitLocked'),
+    travelerPortraitRegen: document.getElementById('travelerPortraitRegen'),
   };
 
   function scrollToBottom() {
@@ -373,6 +386,206 @@ document.addEventListener('DOMContentLoaded', () => {
       writeLine(line, 'system');
     }
     scrollToBottom();
+  }
+
+  function formatArcStage(stage) {
+    return typeof stage === 'number' ? stage + ' / 4' : '— locked —';
+  }
+
+  function formatFirstContact(ms) {
+    if (!ms) return '—';
+    try {
+      return new Date(ms).toLocaleDateString(undefined, {
+        year: 'numeric', month: 'short', day: 'numeric',
+      });
+    } catch (e) {
+      return '—';
+    }
+  }
+
+  function formatCountryName(code) {
+    if (!code || code === 'unknown' || code === 'XX' || code === 'T1') return '— unresolved —';
+    try {
+      const dn = new Intl.DisplayNames(['en'], { type: 'region' });
+      return dn.of(code) || code;
+    } catch (e) {
+      return code;
+    }
+  }
+
+  function renderTravelerFileFields(data) {
+    if (!dom.travelerFileFields) return;
+    const rows = [
+      ['Name', data.traveler_name || '— not yet given —'],
+      ['Origin', formatCountryName(data.traveler_country)],
+      ['First contact', formatFirstContact(data.first_contact)],
+      ['Contact stage', formatArcStage(data.contact_arc_stage)],
+      ['Archetype', data.archetype || (data.portrait_locked ? '— locked —' : 'not yet formed')],
+      ['Transmissions logged', String(data.transmissions_logged ?? 0)],
+    ];
+    dom.travelerFileFields.innerHTML = rows.map(function(pair) {
+      const locked = pair[1] === '— locked —' || pair[1] === '— not yet given —' || pair[1] === '— unresolved —';
+      return '<div><dt>' + pair[0] + '</dt><dd class="' + (locked ? 'is-locked' : '') + '">' + pair[1] + '</dd></div>';
+    }).join('');
+  }
+
+  function renderTravelerPortrait(data) {
+    if (!dom.travelerPortraitFrame || !dom.travelerPortraitImage || !dom.travelerPortraitLocked) return;
+
+    if (data.portrait_locked) {
+      dom.travelerPortraitFrame.classList.add('is-locked');
+      dom.travelerPortraitImage.hidden = true;
+      dom.travelerPortraitImage.removeAttribute('src');
+      dom.travelerPortraitLocked.hidden = false;
+      dom.travelerPortraitLocked.textContent = 'Portrait not yet resolved. The archive needs proximity to render this.';
+      if (dom.travelerPortraitRegen) dom.travelerPortraitRegen.hidden = true;
+      return;
+    }
+
+    dom.travelerPortraitFrame.classList.remove('is-locked');
+    if (dom.travelerPortraitRegen) {
+      dom.travelerPortraitRegen.hidden = false;
+      dom.travelerPortraitRegen.disabled = !data.can_regenerate_portrait;
+      dom.travelerPortraitRegen.textContent = data.can_regenerate_portrait
+        ? 'Regenerate portrait'
+        : 'Regenerate portrait (cooling down)';
+    }
+
+    if (data.portrait_data_url) {
+      dom.travelerPortraitImage.src = data.portrait_data_url;
+      dom.travelerPortraitImage.hidden = false;
+      dom.travelerPortraitLocked.hidden = true;
+    } else {
+      dom.travelerPortraitImage.hidden = true;
+      dom.travelerPortraitLocked.hidden = false;
+      dom.travelerPortraitLocked.textContent = 'The archive has not rendered a portrait yet.';
+    }
+  }
+
+  function setTravelerFileStatus(message) {
+    if (!dom.travelerFileStatus) return;
+    if (!message) {
+      dom.travelerFileStatus.hidden = true;
+      dom.travelerFileStatus.textContent = '';
+      return;
+    }
+    dom.travelerFileStatus.hidden = false;
+    dom.travelerFileStatus.textContent = message;
+  }
+
+  function renderEmptyTravelerFile() {
+    if (dom.travelerFileId) dom.travelerFileId.textContent = '';
+    renderTravelerFileFields({
+      traveler_name: null,
+      traveler_country: null,
+      first_contact: null,
+      contact_arc_stage: null,
+      archetype: null,
+      transmissions_logged: 0,
+      portrait_locked: true,
+    });
+    renderTravelerPortrait({ portrait_locked: true });
+    if (dom.travelerPortraitLocked) {
+      dom.travelerPortraitLocked.textContent = 'Portrait not yet resolved. Send a transmission to begin the archive record.';
+    }
+  }
+
+  function loadTravelerFile() {
+    if (!state.visitorToken) {
+      renderEmptyTravelerFile();
+      return;
+    }
+    setTravelerFileStatus('Loading archive record…');
+    fetch('/api/traveler-file?visitor_token=' + encodeURIComponent(state.visitorToken))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status !== 'ok') {
+          setTravelerFileStatus('');
+          renderEmptyTravelerFile();
+          return;
+        }
+        setTravelerFileStatus('');
+        if (dom.travelerFileId) dom.travelerFileId.textContent = '#' + data.traveler_id;
+        renderTravelerFileFields(data);
+        renderTravelerPortrait(data);
+      })
+      .catch(function() {
+        setTravelerFileStatus('Could not reach the archive. Try again.');
+      });
+  }
+
+  function openTravelerFile() {
+    if (!dom.travelerFileOverlay) return;
+    dom.travelerFileOverlay.hidden = false;
+    dom.travelerFileOverlay.setAttribute('aria-hidden', 'false');
+    markActivity();
+    loadTravelerFile();
+    if (dom.travelerFileClose) dom.travelerFileClose.focus();
+  }
+
+  function closeTravelerFile() {
+    if (!dom.travelerFileOverlay) return;
+    dom.travelerFileOverlay.hidden = true;
+    dom.travelerFileOverlay.setAttribute('aria-hidden', 'true');
+    if (dom.travelerFileButton) dom.travelerFileButton.focus();
+  }
+
+  function regenerateTravelerPortrait() {
+    if (!state.visitorToken || !dom.travelerPortraitRegen) return;
+    dom.travelerPortraitRegen.disabled = true;
+    dom.travelerPortraitRegen.textContent = 'Resolving portrait…';
+    setTravelerFileStatus('');
+
+    fetch('/api/traveler-file/portrait', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitor_token: state.visitorToken }),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.ok) {
+          loadTravelerFile();
+        } else if (data.error === 'cooldown') {
+          setTravelerFileStatus('Portrait already resolved recently. Try again later.');
+          dom.travelerPortraitRegen.disabled = true;
+          dom.travelerPortraitRegen.textContent = 'Regenerate portrait (cooling down)';
+        } else {
+          setTravelerFileStatus('The archive could not resolve a portrait this time.');
+          dom.travelerPortraitRegen.disabled = false;
+          dom.travelerPortraitRegen.textContent = 'Regenerate portrait';
+        }
+      })
+      .catch(function() {
+        setTravelerFileStatus('Network error. Please try again.');
+        dom.travelerPortraitRegen.disabled = false;
+        dom.travelerPortraitRegen.textContent = 'Regenerate portrait';
+      });
+  }
+
+  function forgetTraveler() {
+    if (!state.visitorToken || !dom.travelerFileForget) return;
+    if (!window.confirm('This permanently erases your traveler file, memory, and portrait. This cannot be undone. Continue?')) {
+      return;
+    }
+    dom.travelerFileForget.disabled = true;
+    dom.travelerFileForget.textContent = 'Erasing…';
+
+    fetch('/api/traveler-file/forget', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitor_token: state.visitorToken }),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function() {
+        setTravelerFileStatus('File erased. Reloading…');
+        try { window.localStorage.removeItem('furai_visitor_token'); } catch (e) {}
+        setTimeout(function() { window.location.reload(); }, 1200);
+      })
+      .catch(function() {
+        setTravelerFileStatus('Network error. Please try again.');
+        dom.travelerFileForget.disabled = false;
+        dom.travelerFileForget.textContent = 'Forget me — erase this file';
+      });
   }
 
   function presentAmbientVisual(scene, totalMs) {
@@ -1353,6 +1566,42 @@ document.addEventListener('DOMContentLoaded', () => {
     dom.encryptedKeyButton.addEventListener('click', () => {
       markActivity();
       revealEncryptedAccessNotice();
+    });
+  }
+
+  if (dom.travelerFileButton) {
+    dom.travelerFileButton.addEventListener('click', () => {
+      openTravelerFile();
+    });
+  }
+
+  if (dom.travelerFileClose) {
+    dom.travelerFileClose.addEventListener('click', () => {
+      closeTravelerFile();
+    });
+  }
+
+  if (dom.travelerFileOverlay) {
+    dom.travelerFileOverlay.addEventListener('click', (e) => {
+      if (e.target === dom.travelerFileOverlay) closeTravelerFile();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dom.travelerFileOverlay && !dom.travelerFileOverlay.hidden) {
+      closeTravelerFile();
+    }
+  });
+
+  if (dom.travelerPortraitRegen) {
+    dom.travelerPortraitRegen.addEventListener('click', () => {
+      regenerateTravelerPortrait();
+    });
+  }
+
+  if (dom.travelerFileForget) {
+    dom.travelerFileForget.addEventListener('click', () => {
+      forgetTraveler();
     });
   }
 
