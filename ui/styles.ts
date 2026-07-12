@@ -460,17 +460,18 @@ export const uiStyles = `    .sr-only {
       position: relative;
       align-items: center;
       justify-content: center;
-      padding: 12px 20px;
-      min-height: 42px;
-      color: var(--color-accent);
-      background: transparent;
-      border: 0;
+      padding: 13px 24px;
+      min-height: 46px;
+      color: #0a0705;
+      background: rgba(255, 179, 71, 0.92);
+      border: 1px solid rgba(255, 179, 71, 0.92);
+      border-radius: 2px;
       cursor: pointer;
       font-family: var(--font-ui);
-      font-size: 10px;
-      letter-spacing: 0.3em;
+      font-size: 11px;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
-      transition: color 0.35s ease, transform 0.35s ease;
+      transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
       isolation: isolate;
       -webkit-tap-highlight-color: transparent;
       text-decoration: none;
@@ -478,49 +479,21 @@ export const uiStyles = `    .sr-only {
 
     .frameButton:disabled {
       cursor: default;
-      opacity: 0.62;
+      opacity: 0.5;
       transform: none;
     }
 
-    .frameButton::before,
-    .frameButton::after {
-      content: "";
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      opacity: 0.45;
-      transition: width 0.35s ease, height 0.35s ease, opacity 0.35s ease;
-      pointer-events: none;
-    }
-
-    .frameButton::before {
-      top: 0;
-      left: 0;
-      border-top: 1px solid var(--color-accent);
-      border-left: 1px solid var(--color-accent);
-    }
-
-    .frameButton::after {
-      right: 0;
-      bottom: 0;
-      border-right: 1px solid var(--color-accent);
-      border-bottom: 1px solid var(--color-accent);
-    }
-
-    .frameButton:hover,
+    .frameButton:hover:not(:disabled),
     .frameButton:focus-visible {
-      color: var(--color-accent-soft);
+      background: rgba(255, 200, 110, 0.98);
+      border-color: rgba(255, 214, 145, 0.98);
       outline: none;
       transform: translateY(-1px);
     }
 
-    .frameButton:hover::before,
-    .frameButton:hover::after,
-    .frameButton:focus-visible::before,
-    .frameButton:focus-visible::after {
-      width: 100%;
-      height: 100%;
-      opacity: 1;
+    .frameButton:active:not(:disabled) {
+      transform: scale(0.97);
+      background: rgba(255, 200, 110, 0.98);
     }
 
     .frameButton-inner {
@@ -529,7 +502,20 @@ export const uiStyles = `    .sr-only {
     }
 
     .frameButton-secondary {
-      color: rgba(248, 234, 208, 0.72);
+      color: rgba(255, 226, 176, 0.92);
+      background: rgba(232, 168, 76, 0.06);
+      border-color: rgba(232, 168, 76, 0.42);
+    }
+
+    .frameButton-secondary:hover:not(:disabled),
+    .frameButton-secondary:focus-visible {
+      color: rgba(255, 236, 203, 0.98);
+      background: rgba(232, 168, 76, 0.14);
+      border-color: rgba(232, 168, 76, 0.62);
+    }
+
+    .frameButton-secondary:active:not(:disabled) {
+      background: rgba(232, 168, 76, 0.2);
     }
 
     .headerLink {
@@ -1108,78 +1094,184 @@ export const uiStyles = `    .sr-only {
     }
 
     .proximityPayment {
-      display: grid;
-      grid-template-columns: minmax(0, 0.92fr) minmax(320px, 1.08fr);
-      gap: 32px;
-      margin-top: 54px;
+      max-width: 480px;
+      margin: 54px auto 0;
       padding-top: 42px;
       border-top: 1px solid rgba(232, 168, 76, 0.16);
       animation: welcomeReveal 1.6s 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
+    .paymentHeader {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
     .paymentHeader h2 {
       margin: 10px 0 0;
-      font-size: clamp(30px, 5vw, 52px);
+      font-size: clamp(28px, 5vw, 44px);
       line-height: 0.98;
       font-weight: 300;
       color: rgba(255, 236, 203, 0.94);
     }
 
-    .paymentAddressBlock,
+    /* Step progress bar */
+    .paymentSteps {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      margin: 0 0 28px;
+      padding: 0;
+    }
+
+    .paymentStep {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .paymentStepDot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      border: 1px solid rgba(232, 168, 76, 0.28);
+      color: rgba(248, 234, 208, 0.5);
+      background: transparent;
+      transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+    }
+
+    .paymentStepLabel {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(248, 234, 208, 0.5);
+      transition: color 0.25s ease;
+    }
+
+    .paymentStepLine {
+      flex: 1;
+      height: 1px;
+      margin: 0 10px;
+      background: rgba(232, 168, 76, 0.22);
+      transition: background 0.3s ease;
+    }
+
+    .paymentStepLine.done {
+      background: rgba(255, 179, 71, 0.75);
+    }
+
+    .paymentStep.active .paymentStepDot,
+    .paymentStep.done .paymentStepDot {
+      background: rgba(255, 179, 71, 0.9);
+      border-color: rgba(255, 179, 71, 0.9);
+      color: #0a0705;
+    }
+
+    .paymentStep.active .paymentStepLabel,
+    .paymentStep.done .paymentStepLabel {
+      color: rgba(255, 236, 203, 0.92);
+    }
+
+    /* Screens */
+    .paymentScreen {
+      animation: welcomeReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .paymentScreenHint {
+      margin: 0 0 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-align: center;
+      color: rgba(248, 234, 208, 0.58);
+    }
+
+    .paymentCard {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 22px 20px;
+      background: rgba(232, 168, 76, 0.05);
+      border: 1px solid rgba(232, 168, 76, 0.16);
+      border-radius: 8px;
+    }
+
+    .paymentCardKicker {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(248, 234, 208, 0.5);
+    }
+
+    .paymentCardAmount {
+      margin: 2px 0 16px;
+      font-family: var(--font-mono);
+      font-size: 22px;
+      color: rgba(255, 200, 110, 0.96);
+    }
+
     .paymentNote,
-    .paymentBanner,
-    .restoreAccess,
-    .paymentForm,
-    .tokenSaveBox,
     .paymentFootnote {
-      grid-column: 2;
       margin: 0;
       font-family: var(--font-mono);
       font-size: 13px;
       line-height: 1.7;
-      color: rgba(248, 234, 208, 0.72);
+      color: rgba(248, 234, 208, 0.58);
     }
 
-    .paymentAddressBlock p {
-      margin: 0 0 10px;
+    .paymentFootnote {
+      max-width: 480px;
+      margin: 14px auto 0;
+      text-align: center;
+      font-size: 12px;
     }
 
     .usdtAddress {
+      width: 100%;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 10px;
       align-items: stretch;
+      margin-top: 14px;
     }
 
     .usdtAddress code,
-    .tokenSaveBox code {
+    #token-display {
       min-width: 0;
       overflow-wrap: anywhere;
       padding: 13px 14px;
       border: 1px solid rgba(232, 168, 76, 0.18);
+      border-radius: 4px;
       background: rgba(5, 3, 2, 0.6);
       color: rgba(255, 226, 176, 0.92);
+      font-family: var(--font-mono);
+      font-size: 12px;
     }
 
     .usdtAddress button,
     .restoreRow button,
     .restoreRow input,
-    .tokenSaveBox button,
-    .paymentForm button,
-    .paymentForm select,
-    .paymentForm input {
+    #copy-token-btn {
       min-height: 44px;
       border: 1px solid rgba(232, 168, 76, 0.22);
-      border-radius: 0;
+      border-radius: 4px;
       font: inherit;
+      font-family: var(--font-mono);
       color: rgba(255, 236, 203, 0.9);
       background: rgba(7, 5, 3, 0.78);
     }
 
     .usdtAddress button,
     .restoreRow button,
-    .tokenSaveBox button,
-    .paymentForm button {
+    #copy-token-btn {
       padding: 0 18px;
       cursor: pointer;
       color: #010208;
@@ -1191,30 +1283,28 @@ export const uiStyles = `    .sr-only {
     .usdtAddress button:focus-visible,
     .restoreRow button:hover,
     .restoreRow button:focus-visible,
-    .tokenSaveBox button:hover,
-    .tokenSaveBox button:focus-visible,
-    .paymentForm button:hover,
-    .paymentForm button:focus-visible {
+    #copy-token-btn:hover,
+    #copy-token-btn:focus-visible {
       border-color: rgba(255, 214, 145, 0.8);
       background: rgba(255, 200, 110, 0.96);
       outline: none;
     }
 
-    .restoreRow button:disabled,
-    .paymentForm button:disabled {
+    .restoreRow button:disabled {
       cursor: default;
       opacity: 0.58;
     }
 
-    .paymentNote,
-    .paymentFootnote {
-      color: rgba(248, 234, 208, 0.58);
-    }
-
     .paymentBanner {
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 14px;
       padding: 12px 14px;
       border: 1px solid rgba(232, 168, 76, 0.18);
+      border-radius: 4px;
       background: rgba(5, 3, 2, 0.58);
+      font-family: var(--font-mono);
+      font-size: 13px;
     }
 
     .paymentBanner[data-state="success"] {
@@ -1227,18 +1317,87 @@ export const uiStyles = `    .sr-only {
       border-color: rgba(255, 127, 102, 0.34);
     }
 
-    .restoreAccess,
-    .tokenSaveBox {
-      display: grid;
-      gap: 10px;
-      padding: 12px 14px;
-      border: 1px solid rgba(232, 168, 76, 0.18);
-      background: rgba(5, 3, 2, 0.58);
+    .paymentBanner[data-state="info"] {
+      color: rgba(255, 226, 176, 0.7);
+      border-color: rgba(232, 168, 76, 0.3);
     }
 
-    .restoreLabel,
-    .tokenSaveLabel {
+    /* Scanning indicator (step 3, before result) */
+    .paymentScanning {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 14px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: rgba(248, 234, 208, 0.72);
+    }
+
+    .paymentSpinner {
+      width: 15px;
+      height: 15px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 2px solid rgba(232, 168, 76, 0.28);
+      border-top-color: rgba(255, 179, 71, 0.9);
+      animation: paymentSpin 0.8s linear infinite;
+    }
+
+    @keyframes paymentSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    .paymentDoneTitle {
+      margin: 0 0 4px;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      color: rgba(161, 226, 178, 0.96);
+    }
+
+    #copy-token-btn {
+      margin-top: 12px;
+    }
+
+    /* Restore access (secondary, collapsed by default) */
+    .restoreToggle {
+      display: block;
+      width: 100%;
+      margin-top: 24px;
+      padding: 0;
+      background: none;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-align: center;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      color: rgba(248, 234, 208, 0.5);
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .restoreToggle:hover,
+    .restoreToggle:focus-visible {
+      color: rgba(255, 226, 176, 0.85);
+      outline: none;
+    }
+
+    .restoreAccess {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+      padding: 14px 16px;
+      border: 1px solid rgba(232, 168, 76, 0.18);
+      border-radius: 4px;
+      background: rgba(5, 3, 2, 0.58);
+      animation: welcomeReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .restoreLabel {
       margin: 0;
+      font-family: var(--font-mono);
+      font-size: 13px;
       color: rgba(248, 234, 208, 0.72);
     }
 
@@ -1260,39 +1419,14 @@ export const uiStyles = `    .sr-only {
     }
 
     .restoreStatus {
+      font-family: var(--font-mono);
+      font-size: 12px;
       color: rgba(255, 226, 176, 0.92);
-    }
-
-    .tokenSaveBox {
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: stretch;
-    }
-
-    .tokenSaveLabel {
-      grid-column: 1 / -1;
-      color: rgba(255, 226, 176, 0.92);
-    }
-
-    .paymentForm {
-      display: grid;
-      gap: 12px;
-    }
-
-    .paymentForm select,
-    .paymentForm input {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0 14px;
-    }
-
-    .paymentForm input::placeholder {
-      color: rgba(248, 234, 208, 0.38);
     }
 
     .paymentTierPicker {
       display: flex;
       gap: 12px;
-      margin-bottom: 18px;
     }
 
     .tierPickBtn {
@@ -1300,73 +1434,101 @@ export const uiStyles = `    .sr-only {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
-      padding: 14px 10px;
-      background: rgba(5, 3, 2, 0.58);
+      gap: 6px;
+      padding: 18px 12px;
+      border-radius: 8px;
+      background: rgba(5, 3, 2, 0.45);
       border: 1px solid rgba(232, 168, 76, 0.18);
       color: rgba(248, 234, 208, 0.86);
       cursor: pointer;
       font-family: inherit;
+      text-align: center;
       transition: background 0.2s ease, border-color 0.2s ease;
     }
 
     .tierPickBtn:hover,
     .tierPickBtn:focus-visible {
-      background: rgba(5, 3, 2, 0.78);
+      background: rgba(5, 3, 2, 0.7);
       border-color: rgba(232, 168, 76, 0.4);
       outline: none;
     }
 
     .tierPickBtn.active {
-      background: rgba(232, 168, 76, 0.1);
-      border-color: rgba(232, 168, 76, 0.62);
+      background: rgba(232, 168, 76, 0.12);
+      border-color: rgba(255, 179, 71, 0.75);
     }
 
     .tierPickName {
-      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: rgba(248, 234, 208, 0.6);
+      color: rgba(248, 234, 208, 0.7);
     }
 
     .tierPickPrice {
-      font-size: 1rem;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
       font-weight: 500;
-      color: rgba(255, 226, 176, 0.92);
+      color: rgba(255, 226, 176, 0.94);
+    }
+
+    .tierPickDesc {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      line-height: 1.4;
+      color: rgba(248, 234, 208, 0.48);
+    }
+
+    .tierPickCheck {
+      margin-top: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgba(255, 179, 71, 0.95);
+      opacity: 0;
+      transform: translateY(-2px);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .tierPickBtn.active .tierPickCheck {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .paymentQrBlock {
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 18px;
+      justify-content: center;
+      margin-bottom: 4px;
     }
 
     #qr-canvas {
-      border-radius: 2px;
+      border-radius: 4px;
       image-rendering: pixelated;
       box-shadow: 0 0 0 6px #fdf6ec, 0 0 0 8px rgba(232, 168, 76, 0.3);
     }
 
     .paymentSentBtn {
-      margin-top: 4px;
-      padding: 10px 22px;
-      background: rgba(232, 168, 76, 0.1);
-      border: 1px solid rgba(232, 168, 76, 0.4);
-      color: rgba(255, 226, 176, 0.92);
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 16px;
+      padding: 13px 22px;
+      border-radius: 4px;
+      background: rgba(255, 179, 71, 0.9);
+      border: 1px solid rgba(255, 179, 71, 0.9);
+      color: #0a0705;
       font-size: 0.78rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
-      font-family: inherit;
-      transition: background 0.2s ease, border-color 0.2s ease;
+      font-family: var(--font-mono);
+      transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
     }
 
     .paymentSentBtn:hover:not(:disabled),
     .paymentSentBtn:focus-visible:not(:disabled) {
-      background: rgba(232, 168, 76, 0.2);
-      border-color: rgba(232, 168, 76, 0.65);
+      background: rgba(255, 200, 110, 0.98);
       outline: none;
     }
 
@@ -1380,37 +1542,90 @@ export const uiStyles = `    .sr-only {
       flex-direction: column;
       align-items: flex-start;
       gap: 10px;
-      padding: 14px 16px;
-      background: rgba(5, 3, 2, 0.58);
-      border: 1px solid rgba(232, 168, 76, 0.18);
-      margin-bottom: 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .paymentAutoConfirm code {
+      font-family: var(--font-mono);
       font-size: 0.68rem;
       word-break: break-all;
       color: rgba(248, 234, 208, 0.65);
+    }
+
+    .paymentAutoConfirm button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 13px 22px;
+      border-radius: 4px;
+      background: rgba(255, 179, 71, 0.9);
+      border: 1px solid rgba(255, 179, 71, 0.9);
+      color: #0a0705;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: background 0.2s ease, opacity 0.2s ease;
+    }
+
+    .paymentAutoConfirm button:hover:not(:disabled) {
+      background: rgba(255, 200, 110, 0.98);
+    }
+
+    .paymentAutoConfirm button:disabled {
+      opacity: 0.45;
+      cursor: default;
     }
 
     .paymentManual {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      padding: 14px 16px;
-      background: rgba(5, 3, 2, 0.45);
-      border: 1px solid rgba(232, 168, 76, 0.12);
-      margin-bottom: 16px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .paymentManual input {
       width: 100%;
       box-sizing: border-box;
       padding: 0 14px;
+      min-height: 44px;
+      border: 1px solid rgba(232, 168, 76, 0.22);
+      border-radius: 4px;
+      font: inherit;
+      font-family: var(--font-mono);
+      color: rgba(255, 236, 203, 0.9);
+      background: rgba(7, 5, 3, 0.78);
     }
 
-    .paymentBanner[data-state="info"] {
-      color: rgba(255, 226, 176, 0.7);
-      border-color: rgba(232, 168, 76, 0.3);
+    .paymentManual input::placeholder {
+      color: rgba(248, 234, 208, 0.38);
+    }
+
+    .paymentManual button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 13px 22px;
+      border-radius: 4px;
+      background: rgba(232, 168, 76, 0.12);
+      border: 1px solid rgba(232, 168, 76, 0.4);
+      color: rgba(255, 226, 176, 0.92);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .paymentManual button:hover:not(:disabled) {
+      background: rgba(232, 168, 76, 0.22);
+    }
+
+    .paymentManual button:disabled {
+      opacity: 0.45;
+      cursor: default;
     }
 
     @keyframes welcomeReveal {
@@ -1959,6 +2174,242 @@ export const uiStyles = `    .sr-only {
       opacity: 0.94;
     }
 
+    /* Traveler file modal */
+    .travelerFileOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(2, 1, 1, 0.72);
+      backdrop-filter: blur(3px);
+      animation: welcomeReveal 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .travelerFileOverlay[hidden] {
+      display: none;
+    }
+
+    .travelerFileModal {
+      width: 100%;
+      max-width: 420px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: #0a0705;
+      border: 1px solid rgba(232, 168, 76, 0.28);
+      border-radius: 8px;
+      padding: 24px 22px;
+    }
+
+    .travelerFileHead {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .travelerFileKicker {
+      margin: 0 0 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255, 179, 71, 0.85);
+    }
+
+    .travelerFileIdLabel {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(248, 234, 208, 0.4);
+    }
+
+    .travelerFileClose {
+      background: none;
+      border: none;
+      font-size: 20px;
+      line-height: 1;
+      color: rgba(248, 234, 208, 0.5);
+      cursor: pointer;
+      padding: 2px 6px;
+      transition: color 0.2s ease;
+    }
+
+    .travelerFileClose:hover,
+    .travelerFileClose:focus-visible {
+      color: rgba(255, 226, 176, 0.9);
+      outline: none;
+    }
+
+    .travelerFileBody {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .travelerFileNotice {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      background: rgba(232, 168, 76, 0.05);
+      border: 1px solid rgba(232, 168, 76, 0.16);
+      border-radius: 6px;
+    }
+
+    .travelerFileLockIcon {
+      font-size: 8px;
+      color: rgba(255, 179, 71, 0.85);
+      margin-top: 4px;
+      flex-shrink: 0;
+      font-style: normal;
+    }
+
+    .travelerFileNotice p {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(248, 234, 208, 0.68);
+    }
+
+    .travelerPortraitFrame {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(232, 168, 76, 0.18);
+      background: #0a0705;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .travelerPortraitFrame.is-locked {
+      border-style: dashed;
+    }
+
+    #travelerPortraitImage {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    #travelerPortraitImage[hidden] {
+      display: none;
+    }
+
+    .travelerPortraitLockedText {
+      margin: 0;
+      padding: 0 20px;
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.6;
+      color: rgba(248, 234, 208, 0.35);
+    }
+
+    .travelerFileFields {
+      display: grid;
+      gap: 1px;
+      margin: 0;
+      background: rgba(232, 168, 76, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .travelerFileFields > div {
+      display: flex;
+      justify-content: space-between;
+      padding: 9px 12px;
+      background: #0a0705;
+    }
+
+    .travelerFileFields dt {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: rgba(248, 234, 208, 0.5);
+    }
+
+    .travelerFileFields dd {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: rgba(248, 234, 208, 0.86);
+    }
+
+    .travelerFileFields dd.is-locked {
+      color: rgba(248, 234, 208, 0.3);
+    }
+
+    .travelerFileFootnote {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.6;
+      color: rgba(248, 234, 208, 0.4);
+    }
+
+    .travelerFileSecondaryBtn,
+    .travelerFileDangerBtn {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 11px 16px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+    }
+
+    .travelerFileSecondaryBtn {
+      background: rgba(232, 168, 76, 0.1);
+      border: 1px solid rgba(232, 168, 76, 0.3);
+      color: rgba(255, 226, 176, 0.85);
+    }
+
+    .travelerFileSecondaryBtn:hover:not(:disabled),
+    .travelerFileSecondaryBtn:focus-visible:not(:disabled) {
+      background: rgba(232, 168, 76, 0.18);
+      outline: none;
+    }
+
+    .travelerFileSecondaryBtn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .travelerFileDangerBtn {
+      background: transparent;
+      border: 1px solid rgba(255, 127, 102, 0.35);
+      color: rgba(255, 166, 148, 0.85);
+    }
+
+    .travelerFileDangerBtn:hover:not(:disabled),
+    .travelerFileDangerBtn:focus-visible:not(:disabled) {
+      background: rgba(255, 127, 102, 0.1);
+      outline: none;
+    }
+
+    .travelerFileDangerBtn:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    .travelerFileStatus {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: rgba(255, 226, 176, 0.85);
+      text-align: center;
+    }
+
     @media (max-width: 820px) {
       :root {
         --header-height: 54px;
@@ -1991,9 +2442,9 @@ export const uiStyles = `    .sr-only {
       }
 
       .frameButton {
-        padding: 11px 14px;
-        font-size: 9px;
-        letter-spacing: 0.22em;
+        padding: 13px 18px;
+        font-size: 10px;
+        letter-spacing: 0.18em;
       }
 
       .meditationSwitch {
@@ -2016,17 +2467,19 @@ export const uiStyles = `    .sr-only {
       }
 
       .proximityPayment {
-        grid-template-columns: 1fr;
+        max-width: 100%;
       }
 
-      .paymentAddressBlock,
-      .paymentNote,
-      .paymentBanner,
-      .restoreAccess,
-      .paymentForm,
-      .tokenSaveBox,
-      .paymentFootnote {
-        grid-column: 1;
+      .paymentTierPicker {
+        flex-direction: column;
+      }
+
+      .paymentStepLabel {
+        display: none;
+      }
+
+      .paymentStepLine {
+        margin: 0 6px;
       }
 
       #terminalWrap {
