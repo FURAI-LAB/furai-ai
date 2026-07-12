@@ -121,7 +121,7 @@ export function renderProximityUI(bybitUsdtAddress: string): string {
   const safeAddress = escapeHtml(bybitUsdtAddress)
 
   return /* html */ `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="proximityDoc">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -205,59 +205,92 @@ export function renderProximityUI(bybitUsdtAddress: string): string {
         <h2>Activate proximity</h2>
       </div>
 
-      <div class="paymentTierPicker" id="tier-picker">
-        <button type="button" class="tierPickBtn" data-tier="signal" data-amount="9">
-          <span class="tierPickName">SIGNAL</span>
-          <span class="tierPickPrice">9 / month</span>
-        </button>
-        <button type="button" class="tierPickBtn" data-tier="archive" data-amount="20">
-          <span class="tierPickName">ARCHIVE</span>
-          <span class="tierPickPrice">20 / month</span>
-        </button>
-      </div>
+      <ol class="paymentSteps" id="payment-steps" aria-label="Activation progress">
+        <li class="paymentStep" data-step="1"><span class="paymentStepDot">1</span><span class="paymentStepLabel">Tier</span></li>
+        <li class="paymentStepLine" aria-hidden="true"></li>
+        <li class="paymentStep" data-step="2"><span class="paymentStepDot">2</span><span class="paymentStepLabel">Pay</span></li>
+        <li class="paymentStepLine" aria-hidden="true"></li>
+        <li class="paymentStep" data-step="3"><span class="paymentStepDot">3</span><span class="paymentStepLabel">Confirm</span></li>
+        <li class="paymentStepLine" aria-hidden="true"></li>
+        <li class="paymentStep" data-step="4"><span class="paymentStepDot">4</span><span class="paymentStepLabel">Done</span></li>
+      </ol>
 
-      <div class="paymentQrBlock" id="qr-block" hidden>
-        <canvas id="qr-canvas" width="180" height="180" aria-label="Payment QR code"></canvas>
-        <div class="usdtAddress">
-          <code id="pay-addr"></code>
-          <button type="button" data-copy-address>Copy</button>
+      <div class="paymentScreen" id="screen-tier" data-screen="1">
+        <p class="paymentScreenHint">Choose how close the archive should stay.</p>
+        <div class="paymentTierPicker" id="tier-picker">
+          <button type="button" class="tierPickBtn" data-tier="signal" data-amount="9">
+            <span class="tierPickName">SIGNAL</span>
+            <span class="tierPickPrice">9 USDT / month</span>
+            <span class="tierPickDesc">80 transmissions/day, remembered context</span>
+            <span class="tierPickCheck" aria-hidden="true">✓ selected</span>
+          </button>
+          <button type="button" class="tierPickBtn" data-tier="archive" data-amount="20">
+            <span class="tierPickName">ARCHIVE</span>
+            <span class="tierPickPrice">20 USDT / month</span>
+            <span class="tierPickDesc">Unlimited, full memory + deep archive</span>
+            <span class="tierPickCheck" aria-hidden="true">✓ selected</span>
+          </button>
         </div>
-        <p class="paymentNote" id="pay-note"></p>
-
-        <button type="button" class="paymentSentBtn" id="pay-sent-btn">
-          I sent payment — find my transaction
-        </button>
       </div>
 
-      <div id="pay-status-banner" class="paymentBanner" hidden></div>
-
-      <div class="paymentAutoConfirm" id="auto-confirm" hidden>
-        <p class="paymentNote">Transaction found:</p>
-        <code id="auto-txid"></code>
-        <button type="button" id="auto-submit-btn">Activate proximity</button>
+      <div class="paymentScreen" id="screen-pay" data-screen="2" hidden>
+        <div class="paymentCard">
+          <p class="paymentCardKicker" id="pay-tier-label"></p>
+          <p class="paymentCardAmount" id="pay-amount-label"></p>
+          <div class="paymentQrBlock" id="qr-block">
+            <canvas id="qr-canvas" width="180" height="180" aria-label="Payment QR code"></canvas>
+          </div>
+          <div class="usdtAddress">
+            <code id="pay-addr"></code>
+            <button type="button" data-copy-address>Copy</button>
+          </div>
+          <p class="paymentNote" id="pay-note"></p>
+          <button type="button" class="paymentSentBtn" id="pay-sent-btn">
+            I sent payment — find my transaction
+          </button>
+        </div>
+        <p class="paymentFootnote">
+          TRON network only. Do not send on ETH, BSC, or other networks.<br />
+          Access activates automatically after transaction confirmation (~30 sec).
+        </p>
       </div>
 
-      <div class="paymentManual" id="manual-fallback" hidden>
-        <p class="paymentNote">Transaction not detected automatically. Enter it manually:</p>
-        <input
-          id="txid-input"
-          type="text"
-          placeholder="Transaction hash (txid)"
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <input
-          id="amount-input"
-          type="number"
-          step="0.01"
-          min="1"
-          placeholder="Amount sent"
-        />
-        <button type="button" id="manual-submit-btn">Submit manually</button>
+      <div class="paymentScreen" id="screen-confirm" data-screen="3" hidden>
+        <div class="paymentCard">
+          <div id="pay-status-banner" class="paymentBanner" hidden></div>
+
+          <div class="paymentAutoConfirm" id="auto-confirm" hidden>
+            <p class="paymentNote">Transaction found:</p>
+            <code id="auto-txid"></code>
+            <button type="button" id="auto-submit-btn">Activate proximity</button>
+          </div>
+
+          <div class="paymentManual" id="manual-fallback" hidden>
+            <p class="paymentNote">Transaction not detected automatically. Enter it manually:</p>
+            <input
+              id="txid-input"
+              type="text"
+              placeholder="Transaction hash (txid)"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <input
+              id="amount-input"
+              type="number"
+              step="0.01"
+              min="1"
+              placeholder="Amount sent"
+            />
+            <button type="button" id="manual-submit-btn">Submit manually</button>
+          </div>
+        </div>
       </div>
 
-      <div class="restoreAccess" id="restore-access">
-        <p class="restoreLabel">Already paid? Restore your access:</p>
+      <div class="paymentScreen" id="screen-done" data-screen="4" hidden></div>
+
+      <button type="button" class="restoreToggle" id="restore-toggle">Already paid? Restore your access</button>
+      <div class="restoreAccess" id="restore-access" hidden>
+        <p class="restoreLabel">Paste your access token:</p>
         <div class="restoreRow">
           <input
             id="restore-input"
@@ -270,11 +303,6 @@ export function renderProximityUI(bybitUsdtAddress: string): string {
         </div>
         <div id="restore-status" class="restoreStatus" hidden></div>
       </div>
-
-      <p class="paymentFootnote">
-        TRON network only. Do not send on ETH, BSC, or other networks.<br />
-        Access activates automatically after transaction confirmation (~30 sec).
-      </p>
 
       <script type="application/json" id="pay-addresses">
         {"usdt":"${safeAddress}"}
@@ -377,12 +405,20 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
 
 (function () {
   function init() {
+    var stepsBar      = document.getElementById('payment-steps');
+    var screenTier    = document.getElementById('screen-tier');
+    var screenPay     = document.getElementById('screen-pay');
+    var screenConfirm = document.getElementById('screen-confirm');
+    var screenDone    = document.getElementById('screen-done');
+    var screens       = [screenTier, screenPay, screenConfirm, screenDone];
+
     var banner        = document.getElementById('pay-status-banner');
     var tierPicker    = document.getElementById('tier-picker');
-    var qrBlock       = document.getElementById('qr-block');
     var qrCanvas      = document.getElementById('qr-canvas');
     var payAddr       = document.getElementById('pay-addr');
     var payNote       = document.getElementById('pay-note');
+    var payTierLabel  = document.getElementById('pay-tier-label');
+    var payAmountLabel= document.getElementById('pay-amount-label');
     var sentBtn       = document.getElementById('pay-sent-btn');
     var autoConfirm   = document.getElementById('auto-confirm');
     var autoTxid      = document.getElementById('auto-txid');
@@ -392,6 +428,8 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
     var amountInput   = document.getElementById('amount-input');
     var manualSubmit  = document.getElementById('manual-submit-btn');
     var copyBtn       = document.querySelector('[data-copy-address]');
+    var restoreToggle = document.getElementById('restore-toggle');
+    var restoreAccess = document.getElementById('restore-access');
     var restoreBtn    = document.getElementById('restore-btn');
     var restoreInput  = document.getElementById('restore-input');
     var restoreStatus = document.getElementById('restore-status');
@@ -402,12 +440,34 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
       if (raw) addressData = JSON.parse(raw.textContent || '{}');
     } catch(e) {}
 
-    var state = { tier: null, amount: 0, address: '', contract: USDT_CONTRACT };
+    var state = { tier: null, amount: 0, address: '', contract: USDT_CONTRACT, step: 1 };
 
-    function showBanner(msg, isError) {
+    function goToStep(n) {
+      state.step = n;
+      screens.forEach(function(s, i) {
+        if (!s) return;
+        s.hidden = (i + 1) !== n;
+      });
+      if (stepsBar) {
+        var dots = stepsBar.querySelectorAll('.paymentStep');
+        var lines = stepsBar.querySelectorAll('.paymentStepLine');
+        dots.forEach(function(d) {
+          var idx = parseInt(d.dataset.step, 10);
+          d.classList.toggle('done', idx < n);
+          d.classList.toggle('active', idx === n);
+        });
+        lines.forEach(function(l, i) {
+          l.classList.toggle('done', (i + 1) < n);
+        });
+      }
+      var active = screens[n - 1];
+      if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function showBanner(msg, stateKind) {
       banner.textContent = msg;
       banner.hidden = false;
-      banner.dataset.state = isError ? 'error' : 'success';
+      banner.dataset.state = stateKind || 'success';
     }
 
     function updateQR() {
@@ -416,6 +476,8 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
       if (!state.address || !state.tier) return;
       renderQR(qrCanvas, state.address);
       payAddr.textContent = state.address;
+      payTierLabel.textContent = state.tier.toUpperCase();
+      payAmountLabel.textContent = state.amount + ' USDT';
       payNote.innerHTML = 'Send exactly <b>' + state.amount + ' USDT</b> (TRC-20) to this address.<br/>Scan QR or copy the address into your wallet.';
     }
 
@@ -426,14 +488,13 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
         this.classList.add('active');
         state.tier = this.dataset.tier;
         state.amount = parseInt(this.dataset.amount);
-        qrBlock.hidden = false;
         autoConfirm.hidden = true;
         manualFall.hidden = true;
         sentBtn.disabled = false;
         sentBtn.textContent = 'I sent payment — find my transaction';
         banner.hidden = true;
         updateQR();
-        qrBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        goToStep(2);
       });
     }
 
@@ -442,7 +503,7 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
       navigator.clipboard.writeText(state.address).then(function() {
         copyBtn.textContent = 'Copied';
         setTimeout(function() { copyBtn.textContent = 'Copy'; }, 1800);
-      }).catch(function() { showBanner('Could not copy. Select manually.', true); });
+      }).catch(function() { showBanner('Could not copy. Select manually.', 'error'); });
     });
 
     var visitorToken = getOrCreateVisitorToken();
@@ -452,10 +513,11 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.status === 'active') {
-            showBanner('Proximity active: ' + data.tier.toUpperCase() + ' — access granted.', false);
-            tierPicker.style.display = 'none';
+            renderDoneScreen(data.tier, null);
+            goToStep(4);
           } else if (data.status === 'pending') {
-            showBanner('Payment received — awaiting confirmation. Usually within 1 hour.', false);
+            goToStep(3);
+            showBanner('Payment received — awaiting confirmation. Usually within 1 hour.', 'info');
           }
         }).catch(function() {});
     }
@@ -464,8 +526,11 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
       if (!state.tier || !state.address) return;
       sentBtn.disabled = true;
       sentBtn.textContent = 'Scanning blockchain...';
-      showBanner('Searching for your transaction (up to 90 sec)…', false);
-      banner.dataset.state = 'info';
+      goToStep(3);
+      banner.hidden = true;
+      autoConfirm.hidden = true;
+      manualFall.hidden = true;
+      renderScanning();
 
       pollTronScan(
         state.address,
@@ -475,16 +540,28 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
           banner.hidden = true;
           autoTxid.textContent = txid;
           autoConfirm.hidden = false;
-          autoConfirm.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         },
         function() {
           banner.hidden = true;
           manualFall.hidden = false;
           if (amountInput) amountInput.value = state.amount;
-          manualFall.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
       );
     });
+
+    function renderScanning() {
+      var existing = screenConfirm.querySelector('.paymentScanning');
+      if (existing) return;
+      var box = document.createElement('div');
+      box.className = 'paymentScanning';
+      box.innerHTML = '<span class="paymentSpinner" aria-hidden="true"></span><span>Scanning blockchain… usually under 30 sec</span>';
+      screenConfirm.querySelector('.paymentCard').insertBefore(box, banner);
+    }
+
+    function clearScanning() {
+      var existing = screenConfirm.querySelector('.paymentScanning');
+      if (existing) existing.remove();
+    }
 
     function submitPayment(txid, amount) {
       return fetch('/api/pay/submit', {
@@ -499,26 +576,32 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
       }).then(function(r) { return r.json(); });
     }
 
+    function renderDoneScreen(tier, txid) {
+      screenDone.innerHTML =
+        '<div class="paymentCard">' +
+          '<p class="paymentDoneTitle">✓ ' + (tier || '').toUpperCase() + ' activated. Welcome to Velorum.</p>' +
+          '<p class="paymentNote">⚠️ Save your access token — needed to restore access in another browser:</p>' +
+          '<code id="token-display">' + visitorToken + '</code>' +
+          '<button type="button" id="copy-token-btn">Copy token</button>' +
+        '</div>';
+      var copyTokenBtn = document.getElementById('copy-token-btn');
+      copyTokenBtn && copyTokenBtn.addEventListener('click', function() {
+        navigator.clipboard.writeText(visitorToken).then(function() {
+          copyTokenBtn.textContent = 'Copied!';
+        }).catch(function() {
+          copyTokenBtn.textContent = 'Copy manually';
+        });
+      });
+    }
+
     function onPayResult(data, btn, origLabel) {
       if (data.ok) {
-        showBanner('✓ ' + (data.tier || state.tier).toUpperCase() + ' activated. Welcome to Velorum.', false);
-        var box = document.createElement('div');
-        box.className = 'tokenSaveBox';
-        box.innerHTML = '<p class="tokenSaveLabel">⚠️ Save your access token — needed to restore access in another browser:</p><code id="token-display">' + visitorToken + '</code><button type="button" id="copy-token-btn">Copy token</button>';
-        banner.parentNode.insertBefore(box, banner.nextSibling);
-        document.getElementById('copy-token-btn').addEventListener('click', function() {
-          navigator.clipboard.writeText(visitorToken).then(function() {
-            document.getElementById('copy-token-btn').textContent = 'Copied!';
-          }).catch(function() {
-            document.getElementById('copy-token-btn').textContent = 'Copy manually';
-          });
-        });
-        tierPicker.style.display = 'none';
-        qrBlock.hidden = true;
-        autoConfirm.hidden = true;
-        manualFall.hidden = true;
+        clearScanning();
+        renderDoneScreen(data.tier || state.tier, data.txid);
+        goToStep(4);
       } else {
-        showBanner('Error: ' + (data.error || 'unknown error'), true);
+        clearScanning();
+        showBanner('Error: ' + (data.error || 'unknown error'), 'error');
         if (btn) { btn.disabled = false; btn.textContent = origLabel; }
       }
     }
@@ -530,7 +613,7 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
       submitPayment(txid, state.amount)
         .then(function(data) { onPayResult(data, autoSubmit, 'Activate proximity'); })
         .catch(function() {
-          showBanner('Network error. Please try again.', true);
+          showBanner('Network error. Please try again.', 'error');
           autoSubmit.disabled = false;
           autoSubmit.textContent = 'Activate proximity';
         });
@@ -540,17 +623,24 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
       var txid = (txidInput.value || '').trim();
       var amount = parseFloat(amountInput.value) || state.amount;
       if (!txid || !/^[a-zA-Z0-9_-]{16,128}$/.test(txid)) {
-        showBanner('Invalid transaction ID.', true); return;
+        showBanner('Invalid transaction ID.', 'error'); return;
       }
       manualSubmit.disabled = true;
       manualSubmit.textContent = 'Submitting...';
       submitPayment(txid, amount)
         .then(function(data) { onPayResult(data, manualSubmit, 'Submit manually'); })
         .catch(function() {
-          showBanner('Network error. Please try again.', true);
+          showBanner('Network error. Please try again.', 'error');
           manualSubmit.disabled = false;
           manualSubmit.textContent = 'Submit manually';
         });
+    });
+
+    restoreToggle && restoreToggle.addEventListener('click', function() {
+      var willShow = restoreAccess.hidden;
+      restoreAccess.hidden = !willShow;
+      restoreToggle.classList.toggle('open', willShow);
+      if (willShow) restoreInput.focus();
     });
 
     restoreBtn.addEventListener('click', function() {
@@ -584,6 +674,8 @@ function pollTronScan(address, contract, expectedAmount, onFound, onTimeout) {
           restoreBtn.disabled = false; restoreBtn.textContent = 'Restore';
         });
     });
+
+    goToStep(1);
   }
 
   if (document.readyState === 'loading') {
@@ -697,6 +789,9 @@ export function renderUI(): string {
       <button id="encryptedKeyButton" class="metaItem metaItemButton metaItemButton-jp metaItemButton-encrypted" type="button" aria-label="Encrypted archive access">
         SEALED RECORD // 暗号化
       </button>
+      <button id="travelerFileButton" class="metaItem metaItemButton" type="button" aria-label="Open your traveler file">
+        TRAVELER FILE
+      </button>
     </div>
 
     <div id="log" role="log" aria-live="polite" aria-label="Terminal output"></div>
@@ -721,6 +816,44 @@ export function renderUI(): string {
 </main>
 
 <div id="thinkingCore" aria-hidden="true"></div>
+
+<div id="travelerFileOverlay" class="travelerFileOverlay" hidden aria-hidden="true">
+  <div id="travelerFileModal" class="travelerFileModal" role="dialog" aria-modal="true" aria-labelledby="travelerFileTitle">
+    <div class="travelerFileHead">
+      <div>
+        <p id="travelerFileTitle" class="travelerFileKicker">Traveler file</p>
+        <p id="travelerFileId" class="travelerFileIdLabel"></p>
+      </div>
+      <button id="travelerFileClose" class="travelerFileClose" type="button" aria-label="Close traveler file">×</button>
+    </div>
+
+    <div id="travelerFileBody" class="travelerFileBody">
+      <div class="travelerFileNotice">
+        <i class="travelerFileLockIcon" aria-hidden="true">&#9679;</i>
+        <p>This file is encrypted in the archive. It is not readable in raw form — not through the database, not by FURAI LAB. It surfaces only when FURAI generates a reply to you.</p>
+      </div>
+
+      <div id="travelerPortraitFrame" class="travelerPortraitFrame">
+        <img id="travelerPortraitImage" alt="Archive-rendered portrait of this traveler" hidden />
+        <p id="travelerPortraitLocked" class="travelerPortraitLockedText">Portrait not yet resolved.<br />The archive needs proximity to render this.</p>
+      </div>
+
+      <dl id="travelerFileFields" class="travelerFileFields"></dl>
+
+      <p id="travelerFileFootnote" class="travelerFileFootnote">
+        Detailed memory content (topics, tone, remembered fragments) stays sealed — the archive uses it, but does not display it, even here.
+      </p>
+
+      <button id="travelerPortraitRegen" class="travelerFileSecondaryBtn" type="button" hidden>
+        Regenerate portrait
+      </button>
+      <button id="travelerFileForget" class="travelerFileDangerBtn" type="button">
+        Forget me — erase this file
+      </button>
+      <p id="travelerFileStatus" class="travelerFileStatus" hidden></p>
+    </div>
+  </div>
+</div>
 
 <audio id="meditationAudio" loop preload="none"></audio>
 
