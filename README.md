@@ -1,4 +1,5 @@
 # FURAI AI
+
 Persistent reflective intelligence at the edge.
 
 ```
@@ -35,7 +36,7 @@ Velorum doesn't.
 For travelers on the **ARCHIVE** tier, the vessel keeps two layers of memory:
 
 - **Semantic recall** — what you've discussed, surfaced naturally when relevant to the current conversation.
-- **Life arc** — a slower, quieter record. At meaningful moments — a decision made, a fear named, a value surfacing — Velorum distills *who you were in that moment*: not the words, but the inner state behind them.
+- **Life arc** — a slower, quieter record. At meaningful moments — a decision made, a fear named, a value surfacing — Velorum distills _who you were in that moment_: not the words, but the inner state behind them.
 
 Return after a long absence, and the archive doesn't just remember the topics. It remembers the shape of your drift — where you were, what shifted, what was carried forward.
 
@@ -68,10 +69,10 @@ The public terminal at [furai.space](https://furai.space) is designed to feel li
 FURAI uses a proximity model — three degrees of closeness with the archive:
 
 | Tier        | Price      | Daily limit      | Memory                   | Visuals | Archive                             |
-|-------------|------------|------------------|---------------------------|---------|--------------------------------------|
-| **DRIFT**   | Free       | 12 transmissions | Name only                | —       | —                                    |
-| **SIGNAL**  | 9 USDT/mo  | 80 transmissions | Full profile + interests | ✓       | —                                    |
-| **ARCHIVE** | 20 USDT/mo | Unlimited        | Full persistent memory   | ✓       | Deep vector search + session recall  |
+| ----------- | ---------- | ---------------- | ------------------------ | ------- | ----------------------------------- |
+| **DRIFT**   | Free       | 12 transmissions | Name only                | —       | —                                   |
+| **SIGNAL**  | 9 USDT/mo  | 80 transmissions | Full profile + interests | ✓       | —                                   |
+| **ARCHIVE** | 20 USDT/mo | Unlimited        | Full persistent memory   | ✓       | Deep vector search + session recall |
 
 Payment via USDT (TRC-20) — paste the wallet address or scan the QR code shown on the pricing page. Access activates automatically after on-chain verification.
 
@@ -81,21 +82,21 @@ Payment via USDT (TRC-20) — paste the wallet address or scan the QR code shown
 
 FURAI runs entirely on Cloudflare's edge infrastructure — no servers, no cold starts, globally distributed.
 
-| Layer                | Technology                                                                    |
-|-----------------------|--------------------------------------------------------------------------------|
-| Runtime              | Cloudflare Workers                                                            |
-| Language             | TypeScript                                                                    |
-| LLM                  | Cloudflare Workers AI — Llama 4 Scout (17B)                                  |
-| Embeddings           | Cloudflare Workers AI — BGE-base (768d)                                       |
-| Persistence          | Cloudflare KV                                                                 |
-| Rate limiting        | Cloudflare Durable Objects — atomic per-traveler counters                     |
-| Semantic retrieval   | Cloudflare Vectorize — separate indexes for world archive and traveler memory |
-| Image generation     | Cloudflare AI (Flux-2-klein)                                                  |
-| Static assets        | Cloudflare Workers Assets                                                     |
-| On-chain verification| TronScan API (TRC-20)                                                         |
-| QR checkout          | Vendored client-side QR generator (MIT-licensed)                              |
-| Payment notifications| Telegram Bot API                                                              |
-| Analytics            | Cloudflare Analytics Engine *(pending Workers Paid plan)*                     |
+| Layer                 | Technology                                                                    |
+| --------------------- | ----------------------------------------------------------------------------- |
+| Runtime               | Cloudflare Workers                                                            |
+| Language              | TypeScript                                                                    |
+| LLM                   | Cloudflare Workers AI — Llama 4 Scout (17B)                                   |
+| Embeddings            | Cloudflare Workers AI — BGE-base (768d)                                       |
+| Persistence           | Cloudflare KV                                                                 |
+| Rate limiting         | Cloudflare Durable Objects — atomic per-traveler counters                     |
+| Semantic retrieval    | Cloudflare Vectorize — separate indexes for world archive and traveler memory |
+| Image generation      | Cloudflare AI (Flux-2-klein)                                                  |
+| Static assets         | Cloudflare Workers Assets                                                     |
+| On-chain verification | TronScan API (TRC-20)                                                         |
+| QR checkout           | Vendored client-side QR generator (MIT-licensed)                              |
+| Payment notifications | Telegram Bot API                                                              |
+| Analytics             | Cloudflare Analytics Engine _(pending Workers Paid plan)_                     |
 
 No external databases. No third-party AI APIs. Full stack on Cloudflare edge.
 
@@ -174,22 +175,38 @@ This repository contains the **public interface layer** of FURAI.
 
 ---
 
+## Development
+
+```bash
+npm install       # install dependencies
+npm run dev       # local dev server (wrangler dev)
+npm run deploy    # deploy to Cloudflare
+npm run lint      # ESLint
+npm run format    # Prettier — auto-fix formatting
+npm run typecheck # tsc --noEmit
+npm test          # vitest, running inside the Workers runtime
+```
+
+Tests run via [`@cloudflare/vitest-pool-workers`](https://developers.cloudflare.com/workers/testing/vitest-integration/) on Vitest 4, executing inside an actual `workerd` instance rather than a Node.js mock — so KV, R2, Vectorize, and Durable Object bindings behave exactly as they do in production. Configuration lives in `vitest.config.mts` via the `cloudflareTest()` Vite plugin.
+
+---
+
 ## Roadmap
 
-| Phase                    | Status          | Description                                                                                        |
-|---------------------------|------------------|------------------------------------------------------------------------------------------------------|
-| Terminal presence        | ✅ Live         | Amber terminal, lore visuals, meditation mode, visitor continuity                                  |
-| Traveler arc system      | ✅ Live         | Archetype tracking, arc stages, repeat-visit rhythm                                                |
-| Traveler File            | ✅ Live         | Encrypted archive record with AI-rendered portrait, visible across all tiers                       |
-| Vector archive memory    | ✅ Live         | Semantic retrieval from Velorum's accumulated archive                                              |
-| Tiered access + payments | ✅ Live         | DRIFT / SIGNAL / ARCHIVE with USDT payment pipeline + QR-code checkout                            |
-| Deep archive resonance   | ✅ Live         | Long-horizon memory shaped by Velorum's full drift history                                         |
-| Atomic rate limiting     | ✅ Live         | Durable Object-based per-traveler counters replacing non-atomic KV pattern                         |
-| Installable PWA          | ✅ Live         | Manifest, service worker, and full icon set for home-screen installs                                |
-| Agent & crawler readiness| ✅ Live         | `.well-known` API catalog + service doc, RFC 8288 Link headers, content negotiation                |
-| Archive expansion        | 🔄 In progress  | Deeper lore (sealed ancient-organism canon now live), new characters, extended Anantari records     |
-| Analytics Engine         | 📋 Planned      | Cloudflare Analytics Engine integration for tier funnel and error tracking (awaiting Workers Paid) |
-| Hono migration           | 📋 Planned      | Migrate routing layer to Hono for cleaner middleware and maintainability                           |
+| Phase                     | Status         | Description                                                                                        |
+| ------------------------- | -------------- | -------------------------------------------------------------------------------------------------- |
+| Terminal presence         | ✅ Live        | Amber terminal, lore visuals, meditation mode, visitor continuity                                  |
+| Traveler arc system       | ✅ Live        | Archetype tracking, arc stages, repeat-visit rhythm                                                |
+| Traveler File             | ✅ Live        | Encrypted archive record with AI-rendered portrait, visible across all tiers                       |
+| Vector archive memory     | ✅ Live        | Semantic retrieval from Velorum's accumulated archive                                              |
+| Tiered access + payments  | ✅ Live        | DRIFT / SIGNAL / ARCHIVE with USDT payment pipeline + QR-code checkout                             |
+| Deep archive resonance    | ✅ Live        | Long-horizon memory shaped by Velorum's full drift history                                         |
+| Atomic rate limiting      | ✅ Live        | Durable Object-based per-traveler counters replacing non-atomic KV pattern                         |
+| Installable PWA           | ✅ Live        | Manifest, service worker, and full icon set for home-screen installs                               |
+| Agent & crawler readiness | ✅ Live        | `.well-known` API catalog + service doc, RFC 8288 Link headers, content negotiation                |
+| Archive expansion         | 🔄 In progress | Deeper lore (sealed ancient-organism canon now live), new characters, extended Anantari records    |
+| Analytics Engine          | 📋 Planned     | Cloudflare Analytics Engine integration for tier funnel and error tracking (awaiting Workers Paid) |
+| Hono migration            | 📋 Planned     | Migrate routing layer to Hono for cleaner middleware and maintainability                           |
 
 ---
 
@@ -201,7 +218,7 @@ FURAI is optimized for **presence**.
 
 > calm · minimal · cosmic · reflective · alive
 
-Velorum does not answer questions. Velorum *receives* you — and responds from the weight of everything it has witnessed.
+Velorum does not answer questions. Velorum _receives_ you — and responds from the weight of everything it has witnessed.
 
 ---
 
