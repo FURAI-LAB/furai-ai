@@ -871,10 +871,14 @@ export function renderUiScript(): string {
   return uiScript
     .replace(
       /'__CAPTAIN_RITHAN_PORTRAIT__'/g,
-      JSON.stringify(OFFICIAL_PORTRAIT_DATA["captain-rithan"])
+      JSON.stringify(OFFICIAL_PORTRAIT_DATA["captain-rithan"]),
     )
     .replace(
       /'__CHIEF_ENGINEER_VIIKAA_PORTRAIT__'/g,
-      JSON.stringify(OFFICIAL_PORTRAIT_DATA["chief-engineer-viikaa"])
+      JSON.stringify(OFFICIAL_PORTRAIT_DATA["chief-engineer-viikaa"]),
+    )
+    .replace(
+      /'__SEALED_ORGANISM_PORTRAIT__'/g,
+      JSON.stringify(OFFICIAL_PORTRAIT_DATA["sealed-organism"]),
     )
 }
