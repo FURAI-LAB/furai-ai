@@ -5,7 +5,7 @@ export const uiScript = `'use strict';
 // ─────────────────────────────────────────────
 
 const CONFIG = Object.freeze({
-  typeSpeedMs:       22,
+  typeSpeedMs:       45,
   typeSpeedVarianceMs: 14,
   typePauseCommaMs:  110,
   typePauseSentenceMs: 320,
