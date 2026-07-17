@@ -5,7 +5,10 @@ export const uiScript = `'use strict';
 // ─────────────────────────────────────────────
 
 const CONFIG = Object.freeze({
-  typeSpeedMs:       12,
+  typeSpeedMs:       22,
+  typeSpeedVarianceMs: 14,
+  typePauseCommaMs:  110,
+  typePauseSentenceMs: 320,
   lineGapMs:         40,
   bootLineDelayMs:   200,
   pinkNoiseWorkletPath: '/ai/worklets/pink-noise.js',
@@ -93,6 +96,11 @@ const MANUAL_ARCHIVE_SCENES = Object.freeze({
     topic: 'Chief Engineer Viikaa',
     caption: 'Chief Engineer Viikaa // systems core archive photo',
     image_data_url: '__CHIEF_ENGINEER_VIIKAA_PORTRAIT__',
+  },
+  organism: {
+    topic: 'sealed organism',
+    caption: 'Sealed organism // stasis chamber archive imprint',
+    image_data_url: '__SEALED_ORGANISM_PORTRAIT__',
   },
 });
 
@@ -312,6 +320,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  function charDelay(char) {
+    const jitter = (Math.random() * 2 - 1) * CONFIG.typeSpeedVarianceMs;
+    const base = Math.max(4, CONFIG.typeSpeedMs + jitter);
+
+    if ('.!?…'.includes(char)) return base + CONFIG.typePauseSentenceMs;
+    if (',;:—-'.includes(char)) return base + CONFIG.typePauseCommaMs;
+    return base;
+  }
+
   async function typeLine(text, cls = 'furai') {
     state.furaiTyping = true;
 
@@ -331,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const char of text) {
       textNode.textContent += char;
       scrollToBottom();
-      await delay(CONFIG.typeSpeedMs);
+      await delay(charDelay(char));
     }
 
     cursor.remove();
@@ -1565,6 +1582,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dom.encryptedKeyButton) {
     dom.encryptedKeyButton.addEventListener('click', () => {
       markActivity();
+      if (document.body.dataset.proximityTier === 'archive') {
+        presentManualPortrait('organism');
+        return;
+      }
       revealEncryptedAccessNotice();
     });
   }
@@ -1711,4 +1732,3 @@ self.addEventListener('fetch', (event) => {
   );
 });
 `
-
